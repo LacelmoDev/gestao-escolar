@@ -1,0 +1,213 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+    /* Container Principal */
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px;
+        font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+    }
+
+    /* Cards de Indicadores */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .stat-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-number {
+        font-size: 24px;
+        font-weight: 800;
+        display: block;
+    }
+    .stat-label {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Seções de Gráficos */
+    .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr; /* Donut menor, Barras maior */
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .chart-box {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 15px;
+    }
+    .chart-box h3 {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        color: #417690;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+
+    /* Limites de altura para não explodir na tela */
+    .canvas-container {
+        position: relative;
+        height: 200px; /* Altura fixa para os gráficos pequenos */
+        width: 100%;
+    }
+    .canvas-large {
+        height: 120px !important; /* Para o gráfico de disciplinas que é largo */
+    }
+
+    /* Estilo do Filtro */
+    .filter-bar {
+        background: #f8f8f8;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        border: 1px solid #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <div class="filter-bar">
+        <form method="get" id="filterForm">
+            <strong>📅 Filtro:</strong> 
+            <select name="ano" onchange="document.getElementById('filterForm').submit()" style="padding: 2px 8px;">
+                {% for a in "2024,2025,2026"|make_list %}
+                    <option value="{{ a }}" {% if ano|stringformat:"s" == a %}selected{% endif %}>Ano Lectivo {{ a }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" style="border-top: 4px solid #417690;">
+            <span class="stat-number" style="color:#417690;">{{ total_alunos }}</span>
+            <span class="stat-label">Alunos</span>
+        </div>
+        <div class="stat-card" style="border-top: 4px solid #2ECC71;">
+            <span class="stat-number" style="color:#2ECC71;">{{ total_inscricoes }}</span>
+            <span class="stat-label">Inscrições</span>
+        </div>
+        <div class="stat-card" style="border-top: 4px solid #E67E22;">
+            <span class="stat-number" style="color:#E67E22;">{{ total_professores }}</span>
+            <span class="stat-label">Professores</span>
+        </div>
+        <div class="stat-card" style="border-top: 4px solid #9B59B6;">
+            <span class="stat-number" style="color:#9B59B6;">{{ total_turmas }}</span>
+            <span class="stat-label">Turmas</span>
+        </div>
+    </div>
+
+    <div class="charts-row">
+        <div class="chart-box">
+            <h3>Estados de Inscrição</h3>
+            <div class="canvas-container">
+                <canvas id="chartInscricoes"></canvas>
+            </div>
+        </div>
+        <div class="chart-box">
+            <h3>Alunos por Turma</h3>
+            <div class="canvas-container">
+                <canvas id="chartTurmas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-box" style="margin-bottom: 15px;">
+        <h3>Média Geral por Disciplina</h3>
+        <div class="canvas-container canvas-large">
+            <canvas id="chartDisciplinas"></canvas>
+        </div>
+    </div>
+
+    <div class="charts-row">
+        <div class="chart-box">
+            <h3>Presenças vs Faltas</h3>
+            <div class="canvas-container">
+                <canvas id="chartAssiduidade"></canvas>
+            </div>
+        </div>
+        <div class="chart-box">
+            <h3>Resumo de Faltas</h3>
+            <div style="font-size: 13px;">
+                <p>Total de Faltas: <strong>{{ total_faltas_global }}</strong></p>
+                <div style="background:#eee; height:10px; border-radius:5px; margin-bottom:10px;">
+                    <div style="background:#2ECC71; height:10px; width:{{ pct_justificadas }}%; border-radius:5px;"></div>
+                </div>
+                <p>Justificadas: <span style="color:#2ECC71; font-weight:bold;">{{ pct_justificadas }}%</span></p>
+                <p style="font-size:11px; color:#888; margin-top:15px;">
+                    {% if pct_justificadas >= 70 %}✅ Ótimo controle.
+                    {% else %}⚠️ Atenção às faltas sem justificativa.{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.size = 10;
+    Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    };
+
+    new Chart(document.getElementById('chartInscricoes'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ status_labels|safe }},
+            datasets: [{ data: {{ status_dados|safe }}, backgroundColor: ['#F39C12','#3498DB','#2ECC71','#E74C3C'] }]
+        },
+        options: { ...commonOptions, cutout: '60%' }
+    });
+
+    new Chart(document.getElementById('chartTurmas'), {
+        type: 'bar',
+        data: {
+            labels: {{ turmas_labels|safe }},
+            datasets: [{ label: 'Alunos', data: {{ turmas_alunos|safe }}, backgroundColor: '#417690' }]
+        },
+        options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('chartDisciplinas'), {
+        type: 'bar',
+        data: {
+            labels: {{ disciplinas_labels|safe }},
+            datasets: [{ label: 'Média', data: {{ disciplinas_medias|safe }}, backgroundColor: '#2ECC71' }]
+        },
+        options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { max: 20 } } }
+    });
+
+    new Chart(document.getElementById('chartAssiduidade'), {
+        type: 'bar',
+        data: {
+            labels: {{ assiduidade_labels|safe }},
+            datasets: [
+                { label: 'Presenças', data: {{ assiduidade_presentes|safe }}, backgroundColor: '#2ECC71' },
+                { label: 'Faltas', data: {{ assiduidade_faltas|safe }}, backgroundColor: '#E74C3C' }
+            ]
+        },
+        options: { ...commonOptions, scales: { x: { stacked: true }, y: { stacked: true } } }
+    });
+</script>
+{% endblock %}

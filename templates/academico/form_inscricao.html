@@ -1,0 +1,239 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 mb-20">
+    <div class="bg-white p-8 md:p-16 rounded-[3rem] shadow-2xl border border-gray-100 relative overflow-hidden">
+        <div class="absolute top-8 right-8">
+            <span class="bg-orange-100 text-tarimba px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">Matrícula Online</span>
+        </div>
+        <div class="mb-12">
+            <div class="text-5xl mb-6">📝</div>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tighter">Nova Inscrição</h1>
+            <p class="text-gray-500 font-medium mt-2">Faça parte da nossa instituição. Preencha os dados com atenção.</p>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            <div class="grid md:grid-cols-2 gap-8">
+                {% for field in form %}
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <p class="text-[10px] text-gray-400 italic font-medium leading-relaxed">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="text-[10px] text-red-500 font-bold bg-red-50 p-2 rounded-lg border border-red-100">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Aviso de combinação inválida -->
+            <div id="aviso-combinacao" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm font-bold px-5 py-4 rounded-2xl">
+                ⚠️ <span id="aviso-texto">Combinação de classe e curso inválida.</span>
+            </div>
+
+            <div class="pt-10 border-t border-gray-50 flex flex-col md:flex-row gap-4">
+                <button type="submit" id="btn-submeter" class="flex-grow bg-tarimba text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-orange-600 transition shadow-xl shadow-orange-100 hover:-translate-y-1">
+                    Submeter Candidatura
+                </button>
+                <a href="{% url 'home' %}" class="px-10 py-5 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition text-center">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+    <div class="mt-8 text-center text-gray-400 text-[10px] font-black uppercase tracking-widest opacity-50">
+        Complexo Escolar Privado J.M.F.D - Tarimba • 2026
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="email"], input[type="number"], select, textarea, input[type="file"] {
+        width: 100% !important;
+        padding: 1rem 1.25rem !important;
+        background-color: #F9FAFB !important;
+        border: 2px solid #F9FAFB !important;
+        border-radius: 1rem !important;
+        font-weight: 700 !important;
+        color: #374151 !important;
+        transition: all 0.2s ease !important;
+        outline: none !important;
+    }
+    input:focus, select:focus {
+        border-color: #F97316 !important;
+        background-color: white !important;
+        box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.1) !important;
+    }
+    select option:disabled {
+        color: #ccc !important;
+        background: #f9f9f9 !important;
+    }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Mapeamento: valor da classe → grupo de ciclo
+    const GRUPOS = {
+        'INI': 'PRIMARIO',
+        '1':   'PRIMARIO',
+        '2':   'PRIMARIO',
+        '3':   'PRIMARIO',
+        '4':   'PRIMARIO',
+        '5':   'PRIMARIO',
+        '6':   'PRIMARIO',
+        '7':   'I_CICLO',
+        '8':   'I_CICLO',
+        '9':   'I_CICLO',
+        '10':  'II_CICLO',
+        '11':  'II_CICLO',
+        '12':  'II_CICLO',
+        '13':  'II_CICLO',
+    };
+
+    // Nomes dos cursos que pertencem a cada grupo
+    const CURSOS_POR_GRUPO = {
+        'PRIMARIO': ['Ensino Primário'],
+        'I_CICLO':  ['I Ciclo do Ensino Secundário'],
+        'II_CICLO': [
+            'Informática de Gestão',
+            'Contabilidade Geral',
+            'Ciências Físicas e Biológicas',
+            'Ciências Económicas-Jurídicas',
+        ],
+    };
+
+    const selectClasse   = document.getElementById('id_classe_pretendida');
+    const selectCurso    = document.getElementById('id_curso_pretendido');
+    const inputData      = document.getElementById('id_data_nascimento'); 
+    const aviso          = document.getElementById('aviso-combinacao');
+    const avisoTexto     = document.getElementById('aviso-texto');
+    const btnSubmeter    = document.getElementById('btn-submeter');
+
+    if (!selectClasse || !selectCurso) return; 
+
+   
+    if (inputData) {
+        const anoAtual = new Date().getFullYear(); 
+        const maxAno = anoAtual - 4;               
+        const minAno = 1950;                       
+
+        inputData.min = `${minAno}-01-01`;
+        inputData.max = `${maxAno}-12-31`;
+    }
+
+    const todasOpcoesCurso = Array.from(selectCurso.options);
+
+    function filtrarCursos() {
+        const classeVal = selectClasse.value;
+        const grupo = GRUPOS[classeVal];
+
+        if (!grupo) {
+            todasOpcoesCurso.forEach(opt => {
+                opt.disabled = false;
+                opt.hidden   = false;
+            });
+            executarValidacoes();
+            return;
+        }
+
+        const cursosPermitidos = CURSOS_POR_GRUPO[grupo] || [];
+
+        todasOpcoesCurso.forEach(opt => {
+            if (opt.value === '') {
+                opt.disabled = false;
+                opt.hidden   = false;
+                return;
+            }
+            const permitido = cursosPermitidos.some(nome =>
+                opt.text.trim().toLowerCase().includes(nome.toLowerCase())
+            );
+            opt.disabled = !permitido;
+            opt.hidden   = !permitido;
+        });
+
+        const opcaoActual = selectCurso.options[selectCurso.selectedIndex];
+        if (opcaoActual && opcaoActual.disabled) {
+            selectCurso.value = '';
+        }
+
+        executarValidacoes();
+    }
+
+    function executarValidacoes() {
+        esconderAviso();
+        habilitarSubmeter();
+
+        if (inputData && inputData.value) {
+            const dataSelecionada = new Date(inputData.value);
+            const anoSelecionado = dataSelecionada.getFullYear();
+            const anoAtual = new Date().getFullYear();
+            const maxAno = anoAtual - 4;
+            const minAno = 1950;
+
+            if (anoSelecionado < minAno || anoSelecionado > maxAno) {
+                mostrarAviso(`⚠️ Data de nascimento inválida. O ano de nascimento deve estar entre ${minAno} e ${maxAno}.`);
+                desabilitarSubmeter();
+                return; 
+            }
+        }
+
+        const classeVal = selectClasse.value;
+        const cursoTexto = selectCurso.options[selectCurso.selectedIndex]?.text?.trim() || '';
+        const grupo = GRUPOS[classeVal];
+
+        if (!classeVal || !selectCurso.value || !grupo) {
+            return;
+        }
+
+        const cursosPermitidos = CURSOS_POR_GRUPO[grupo] || [];
+        const valido = cursosPermitidos.some(nome =>
+            cursoTexto.toLowerCase().includes(nome.toLowerCase())
+        );
+
+        if (!valido) {
+            const labels = {
+                'PRIMARIO': 'Ensino Primário (Iniciação à 6ª Classe)',
+                'I_CICLO':  'I Ciclo do Ensino Secundário (7ª à 9ª Classe)',
+                'II_CICLO': 'II Ciclo — cursos técnicos e gerais (10ª à 13ª Classe)',
+            };
+            mostrarAviso(`⚠️ A classe seleccionada pertence ao ${labels[grupo]}. Por favor escolha um curso compatível.`);
+            desabilitarSubmeter();
+        }
+    }
+
+    function mostrarAviso(msg) {
+        avisoTexto.textContent = msg;
+        aviso.classList.remove('hidden');
+    }
+
+    function esconderAviso() {
+        aviso.classList.add('hidden');
+    }
+
+    function desabilitarSubmeter() {
+        btnSubmeter.disabled = true;
+        btnSubmeter.classList.add('opacity-50', 'cursor-not-allowed');
+        btnSubmeter.classList.remove('hover:-translate-y-1');
+    }
+
+    function habilitarSubmeter() {
+        btnSubmeter.disabled = false;
+        btnSubmeter.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnSubmeter.classList.add('hover:-translate-y-1');
+    }
+
+    // Ouvintes de eventos (Listeners)
+    selectClasse.addEventListener('change', filtrarCursos);
+    selectCurso.addEventListener('change', executarValidacoes);
+    if (inputData) {
+        inputData.addEventListener('change', executarValidacoes);
+    }
+
+    filtrarCursos();
+});
+</script>
+{% endblock %}

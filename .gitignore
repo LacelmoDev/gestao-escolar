@@ -1,0 +1,25 @@
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Banco de Dados Local (SQLite)
+db.sqlite3
+
+# Arquivos de Configuração Sensíveis
+.env
+
+# Arquivos de Mídia e Estáticos (Uploads dos usuários)
+media/
+staticfiles/
+
+# Logs e arquivos temporários
+*.log
+.DS_Store
+

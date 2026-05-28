@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 px-4">
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+        <div>
+            <a href="{% url 'professor_dashboard' %}" class="text-[10px] font-black text-tarimba uppercase tracking-widest hover:underline mb-4 inline-block">
+                <i class="fas fa-chevron-left"></i> Voltar ao Painel
+            </a>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tighter">{{ turma.nome }}</h1>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50/50 border-b border-gray-100">
+                <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    <th class="px-8 py-5">Nº Processo</th>
+                    <th class="px-8 py-5">Nome Completo</th>
+                    <th class="px-8 py-5 text-right">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for aluno in alunos %}
+                <tr class="hover:bg-orange-50/20 transition">
+                    <td class="px-8 py-5 font-mono text-xs text-gray-400">#{{ aluno.numero_processo }}</td>
+                    <td class="px-8 py-5 font-black text-gray-800">{{ aluno.usuario.get_full_name }}</td>
+                    <td class="px-8 py-5 text-right flex justify-end gap-2">
+                        <button onclick="openActionModal('nota', '{{ aluno.id }}', '{{ aluno.usuario.get_full_name }}')" 
+                                class="p-3 bg-gray-900 text-white rounded-xl hover:bg-tarimba transition text-[10px] font-black uppercase">
+                            + NOTA
+                        </button>
+                        <button onclick="openActionModal('falta', '{{ aluno.id }}', '{{ aluno.usuario.get_full_name }}')" 
+                                class="p-3 bg-white border border-gray-200 text-red-500 rounded-xl hover:border-red-500 transition">
+                            <i class="fas fa-user-times"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalContainer" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-2xl overflow-hidden relative">
+        <div class="mb-8">
+            <h3 id="modalTitle" class="text-3xl font-black text-gray-900 tracking-tighter">LANÇAR NOTA</h3>
+            <p id="modalStudent" class="text-tarimba font-bold text-sm"></p>
+        </div>
+
+        <form id="mainActionForm" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="aluno_id" id="hidden_aluno_id">
+            <input type="hidden" name="turma_id" value="{{ turma.id }}">
+
+            <div>
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Disciplina</label>
+                <select name="disciplina_id" required class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-tarimba font-bold">
+                    {% for d in disciplinas %}
+                        <option value="{{ d.id }}">{{ d.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="notaInputs" class="grid grid-cols-3 gap-3">
+                <div class="col-span-3">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Trimestre</label>
+                    <select name="trimestre" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold">
+                        <option value="1">1º Trimestre</option>
+                        <option value="2">2º Trimestre</option>
+                        <option value="3">3º Trimestre</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase block mb-1">MAC</label>
+                    <input type="number" name="mac" step="0.1" value="0" class="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-center font-black">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase block mb-1">NPP</label>
+                    <input type="number" name="npp" step="0.1" value="0" class="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-center font-black">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase block mb-1">NPT</label>
+                    <input type="number" name="npt" step="0.1" value="0" class="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-center font-black">
+                </div>
+            </div>
+
+            <div id="faltaInputs" class="hidden space-y-4">
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Data da Falta</label>
+                    <input type="date" name="data" value="{% now 'Y-m-d' %}" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-6">
+                <button type="submit" class="flex-grow bg-tarimba text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-100">Confirmar Registro</button>
+                <button type="button" onclick="closeActionModal()" class="px-8 py-5 bg-gray-100 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-widest">Fechar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openActionModal(type, id, name) {
+        const modal = document.getElementById('modalContainer');
+        const form = document.getElementById('mainActionForm');
+        const title = document.getElementById('modalTitle');
+        const notaInputs = document.getElementById('notaInputs');
+        const faltaInputs = document.getElementById('faltaInputs');
+        
+        document.getElementById('hidden_aluno_id').value = id;
+        document.getElementById('modalStudent').innerText = name;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if(type === 'nota') {
+            title.innerText = "LANÇAR NOTAS";
+            form.action = "{% url 'lancar_nota_rapida' %}";
+            notaInputs.classList.remove('hidden');
+            faltaInputs.classList.add('hidden');
+        } else {
+            title.innerText = "REGISTAR FALTA";
+            form.action = "{% url 'marcar_falta_rapida' %}";
+            notaInputs.classList.add('hidden');
+            faltaInputs.classList.remove('hidden');
+        }
+    }
+
+    function closeActionModal() {
+        document.getElementById('modalContainer').classList.add('hidden');
+        document.getElementById('modalContainer').classList.remove('flex');
+    }
+</script>
+{% endblock %}

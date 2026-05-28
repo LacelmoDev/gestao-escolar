@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <title>{% block title %}Tarimba - Gestão Escolar{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tarimba: '#F97316',
+                        'tarimba-orange': '#F97316',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-tarimba-orange { background-color: #F97316; }
+        .text-tarimba-orange { color: #F97316; }
+
+        #mobile-nav {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-nav.open {
+            max-height: 500px;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+
+    <nav class="bg-tarimba-orange shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-20">
+
+                <div class="flex items-center gap-3">
+                    <a href="/" class="flex items-center justify-center w-16 h-16 transition-opacity hover:opacity-80">
+                        <img src="{% static 'images/logo.png' %}" alt="Logo Tarimba" class="w-full h-full object-contain brightness-0 invert">
+                    </a>
+                    <div class="text-white">
+                        <span class="font-black text-xl leading-none block uppercase tracking-tighter">TARIMBA</span>
+                        <span class="text-[10px] opacity-80 block leading-none tracking-tight">C.E.P. J.M.F.D - CALUMBO</span>
+                    </div>
+                </div>
+
+                <!-- Desktop nav -->
+                <div class="hidden md:flex items-center space-x-6 text-white font-bold text-sm">
+                    {% if not user.is_authenticated %}
+                        <a href="/" class="hover:text-orange-200 transition">Início</a>
+                        <a href="{% url 'precario' %}" class="hover:text-orange-200 transition">Preçário</a>
+                        <a href="{% url 'login' %}" class="bg-white text-tarimba-orange px-6 py-2 rounded-full font-black hover:bg-orange-50 transition shadow-md">ENTRAR</a>
+                    {% else %}
+                        <a href="{% if user.is_professor %}{% url 'professor_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="hover:text-orange-100 transition text-sm uppercase tracking-widest">Painel</a>
+                        {% if not user.is_professor %}
+                        <a href="{% url 'perfil' %}" class="hover:text-orange-100 transition text-sm uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-user-circle text-lg"></i> Perfil
+                        </a>
+                        {% endif %}
+                        {% if user.is_staff or user.is_admin_escola %}
+                        <a href="{% url 'relatorios_admin' %}" class="hover:text-orange-100 transition text-sm uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-lg"></i> Relatórios
+                        </a>
+                        {% endif %}
+                        <form action="{% url 'logout' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-black/20 hover:bg-black/40 px-4 py-2 rounded-xl text-xs transition font-black uppercase tracking-widest">
+                                Sair
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <!-- Hamburger -->
+                <div class="md:hidden flex items-center">
+                    <button id="hamburger-btn" class="text-white focus:outline-none p-2 border border-orange-400 rounded-lg">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile nav — separado por estado de autenticação -->
+        <div id="mobile-nav" class="md:hidden bg-orange-700">
+            <div class="px-4 py-6 space-y-4">
+                {% if not user.is_authenticated %}
+                    <!-- Visitante: menu público completo -->
+                    <a href="/" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Início</a>
+                    <a href="{% url 'precario' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Preçário</a>
+                    <a href="{% url 'login' %}" class="block text-center bg-white text-tarimba-orange py-3 rounded-xl font-black shadow-lg">Entrar no Portal</a>
+                {% else %}
+                    <!-- Utilizador autenticado: só opções do portal -->
+                    <a href="{% if user.is_professor %}{% url 'professor_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">
+                        <i class="fas fa-th-large mr-2"></i> Painel
+                    </a>
+                    {% if not user.is_professor %}
+                    <a href="{% url 'perfil' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">
+                        <i class="fas fa-user-circle mr-2"></i> Perfil
+                    </a>
+                    {% endif %}
+                    {% if user.is_staff or user.is_admin_escola %}
+                    <a href="{% url 'relatorios_admin' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">
+                        <i class="fas fa-chart-bar mr-2"></i> Relatórios
+                    </a>
+                    {% endif %}
+                    <form action="{% url 'logout' %}" method="post" class="w-full pt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center gap-2 text-orange-200 font-bold text-lg">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-6 mt-6 w-full">
+        {% for message in messages %}
+            <div class="p-4 rounded-2xl border-l-4 shadow-sm {% if message.tags == 'success' %}bg-green-50 border-green-500 text-green-700{% else %}bg-red-50 border-red-500 text-red-700{% endif %}">
+                <p class="font-bold text-sm">{{ message }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not user.is_authenticated %}
+    <footer class="bg-gray-900 text-gray-400 py-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-10 h-10 brightness-0 invert opacity-50">
+                <span class="font-black text-xl uppercase italic tracking-tighter">TARIMBA</span>
+            </div>
+            <p class="text-xs font-bold opacity-60 uppercase tracking-widest">
+                © 2026 Tarimba - Sistema de Gestão Escolar | Desenvolvido por DSIX
+            </p>
+        </div>
+    </footer>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('hamburger-btn');
+            const menu = document.getElementById('mobile-nav');
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('open');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

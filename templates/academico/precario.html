@@ -1,0 +1,91 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block content %}
+
+    <main class="max-w-6xl mx-auto px-6 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-6xl font-black text-gray-900 uppercase tracking-tighter">
+                Tabela de <span class="text-tarimba">Preços</span>
+            </h1>
+            <p class="text-gray-400 font-bold uppercase text-xs tracking-[0.4em] mt-4">Ano Lectivo 2025-2026</p>
+            <div class="w-20 h-2 bg-tarimba mx-auto mt-6 rounded-full"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-10">
+            <div class="bg-white rounded-[3rem] shadow-2xl shadow-orange-100/50 overflow-hidden border border-gray-100">
+                <div class="bg-gray-900 p-10 text-white relative overflow-hidden">
+                    <i class="fas fa-money-bill-wave absolute -right-6 -bottom-6 text-7xl opacity-10"></i>
+                    <h3 class="font-black text-2xl uppercase tracking-tight">Propinas</h3>
+                    <p class="text-gray-400 text-xs font-bold uppercase mt-1">Pagamento Mensal</p>
+                </div>
+                
+                <div class="p-4">
+                    <table class="w-full text-left border-separate border-spacing-y-3">
+                        <tbody class="text-gray-700 font-bold">
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-5 rounded-l-2xl">Ensino Pré-Escolar / Primário</td>
+                                <td class="px-6 py-5 text-right text-tarimba font-black text-xl rounded-r-2xl">15.600,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-5 rounded-l-2xl">I Ciclo (7ª - 9ª Classe)</td>
+                                <td class="px-6 py-5 text-right text-tarimba font-black text-xl rounded-r-2xl">16.800,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-5 rounded-l-2xl">Ensino Geral (10ª - 12ª)</td>
+                                <td class="px-6 py-5 text-right text-tarimba font-black text-xl rounded-r-2xl">18.500,00 Kz</td>
+                            </tr>
+                            <tr class="bg-orange-50 rounded-2xl">
+                                <td class="px-6 py-5 rounded-l-2xl italic">Técnico Profissional</td>
+                                <td class="px-6 py-5 text-right text-tarimba font-black text-xl rounded-r-2xl">20.400,00 Kz</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[3rem] shadow-2xl shadow-gray-100 overflow-hidden border border-gray-100">
+                <div class="bg-tarimba p-10 text-white relative overflow-hidden">
+                    <i class="fas fa-file-signature absolute -right-6 -bottom-6 text-7xl opacity-10"></i>
+                    <h3 class="font-black text-2xl uppercase tracking-tight">Emolumentos</h3>
+                    <p class="text-orange-100 text-xs font-bold uppercase mt-1">Taxas Únicas e Serviços</p>
+                </div>
+                
+                <div class="p-4">
+                    <table class="w-full text-left border-separate border-spacing-y-3">
+                        <tbody class="text-gray-700 font-bold">
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-4 rounded-l-2xl">Inscrição (Novos Alunos)</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900 rounded-r-2xl">5.000,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-4 rounded-l-2xl">Matrícula (Novos Alunos)</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900 rounded-r-2xl">12.500,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-4 rounded-l-2xl">Confirmação (Antigos)</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900 rounded-r-2xl">10.800,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-4 rounded-l-2xl">Uniforme Completo</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900 rounded-r-2xl">17.000,00 Kz</td>
+                            </tr>
+                            <tr class="bg-gray-50 rounded-2xl">
+                                <td class="px-6 py-4 rounded-l-2xl">Cartão de Estudante</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900 rounded-r-2xl">1.200,00 Kz</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 p-8 bg-gray-900 rounded-[2rem] text-center">
+            <p class="text-gray-400 text-sm font-medium italic">
+                * Os valores apresentados podem sofrer alterações conforme orientações do Ministério da Educação. 
+                O pagamento de propinas e consoantemente dos emolumentos deve ser realizado nas datas estipuladas para evitar multas.
+                As multas no pagamento de propinas custa 2.500,00 Kz por cada mês de atraso. Para mais informações, entre em contacto com a secretaria do colégio.
+            </p>
+        </div>
+    </main>
+
+ {% endblock %}

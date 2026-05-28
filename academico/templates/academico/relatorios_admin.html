@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Relatórios e Estatísticas — Tarimba{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+    /* Ajuste para não conflitar com o fundo escuro do Admin moderno */
+    .tailwind-wrapper { color: #111827; } 
+    #content { background: #f9fafb !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tailwind-wrapper"> <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+    <div>
+      <h1 class="text-4xl font-black text-gray-900 tracking-tighter italic">
+        📊 Relatórios e <span class="text-tarimba">Estatísticas</span>
+      </h1>
+      <p class="text-gray-400 mt-1 font-bold uppercase text-[10px] tracking-[0.3em]">Ano Lectivo: {{ ano }}</p>
+    </div>
+    <form method="get" class="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-4 py-2 shadow-sm">
+      <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Ano:</label>
+      <select name="ano" class="text-sm font-bold text-gray-700 bg-transparent outline-none cursor-pointer" onchange="this.form.submit()">
+        {% for y in anos_disponiveis %}
+        <option value="{{ y }}" {% if y == ano|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-blue-500 mb-1">{{ total_alunos }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alunos Matriculados</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-green-500 mb-1">{{ total_inscricoes }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total de Inscrições</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-orange-500 mb-1">{{ total_professores }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Professores</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-purple-500 mb-1">{{ total_turmas }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Turmas Activas</div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Inscrições por Estado</h3>
+      <div class="flex items-center justify-center">
+        <canvas id="chartInscricoes" height="220"></canvas>
+      </div>
+    </div>
+    <div class="md:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Alunos por Turma</h3>
+      <canvas id="chartTurmas" height="160"></canvas>
+    </div>
+  </div>
+
+  </div> <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Média por Disciplina</h3>
+      <canvas id="chartDisciplinas" height="220"></canvas>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Assiduidade Geral</h3>
+      <canvas id="chartAssiduidade" height="220"></canvas>
+    </div>
+<script>
+const statusLabels = {{ status_labels|safe }};
+const statusDados  = {{ status_dados|safe }};
+const turmasLabels = {{ turmas_labels|safe }};
+const turmasAlunos = {{ turmas_alunos|safe }};
+const discLabels   = {{ disciplinas_labels|safe }};
+const discMedias   = {{ disciplinas_medias|safe }};
+const assidLabels  = {{ assiduidade_labels|safe }};
+const assidPresent = {{ assiduidade_presentes|safe }};
+const assidFaltas  = {{ assiduidade_faltas|safe }};
+
+new Chart(document.getElementById('chartInscricoes'), {
+  type: 'doughnut',
+  data: { labels: statusLabels, datasets: [{ data: statusDados, backgroundColor: ['#F39C12','#4C9BE8','#2ECC71','#E74C3C'], borderWidth: 2 }] },
+  options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } }, cutout: '65%' }
+});
+
+new Chart(document.getElementById('chartTurmas'), {
+  type: 'bar',
+  data: { labels: turmasLabels, datasets: [{ label: 'Alunos', data: turmasAlunos, backgroundColor: '#4C9BE8', borderRadius: 6 }] },
+  options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 5 } } } }
+});
+
+new Chart(document.getElementById('chartDisciplinas'), {
+  type: 'bar',
+  data: { labels: discLabels, datasets: [{ label: 'Média', data: discMedias, backgroundColor: discMedias.map(m => m >= 10 ? '#2ECC71' : '#E74C3C'), borderRadius: 6 }] },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 20, ticks: { stepSize: 2 } } } }
+});
+
+new Chart(document.getElementById('chartAssiduidade'), {
+  type: 'bar',
+  data: { labels: assidLabels, datasets: [
+    { label: 'Presenças', data: assidPresent, backgroundColor: '#2ECC71', borderRadius: 3 },
+    { label: 'Faltas',    data: assidFaltas,  backgroundColor: '#E74C3C', borderRadius: 3 }
+  ]},
+  options: { plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+});
+</script>
+</div>
+{% endblock %}

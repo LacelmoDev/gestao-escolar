@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: a4; margin: 2cm; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #f97316; padding-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: #f97316; }
+        .titulo { font-size: 18px; margin-top: 10px; text-transform: uppercase; }
+        .section { margin-top: 30px; }
+        .section-title { background: #f3f4f6; padding: 5px 10px; font-weight: bold; font-size: 12px; }
+        .grid { margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 8px 0; font-size: 12px; border-bottom: 1px solid #eee; }
+        .label { font-weight: bold; color: #666; width: 30%; }
+        .footer { margin-top: 50px; font-size: 10px; text-align: center; color: #999; }
+        .carimbo { margin-top: 40px; text-align: center; }
+        .linha-assinatura { border-top: 1px solid #000; width: 200px; margin: 0 auto; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">COLÉGIO TARIMBA</div>
+        <div class="titulo">Comprovativo de Inscrição Online</div>
+        <p style="font-size: 10px;">República de Angola | Ministério da Educação</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">DADOS DO CANDIDATO</div>
+        <table>
+            <tr><td class="label">Protocolo:</td><td>#{{ inscricao.id|stringformat:"05d" }}</td></tr>
+            <tr><td class="label">Nome Completo:</td><td>{{ inscricao.nome_completo }}</td></tr>
+            <tr><td class="label">Nº de B.I.:</td><td>{{ inscricao.bi_numero }}</td></tr>
+            <tr><td class="label">Data de Nascimento:</td><td>{{ inscricao.data_nascimento }}</td></tr>
+            <tr><td class="label">Telefone:</td><td>{{ inscricao.telefone }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">OPÇÃO ACADÉMICA</div>
+        <table>
+            <tr><td class="label">Curso:</td><td>{{ inscricao.curso_pretendido.nome }}</td></tr>
+            <tr><td class="label">Classe:</td><td>{{ inscricao.classe_pretendida }}ª Classe</td></tr>
+            <tr><td class="label">Ano Lectivo:</td><td>2025/2026</td></tr>
+        </table>
+    </div>
+
+    <div class="section" style="background: #fff8f1; border: 1px dashed #f97316; padding: 15px;">
+        <p style="font-size: 11px; margin: 0;"><strong>INSTRUÇÕES:</strong> Apresente este documento na secretaria do colégio juntamente com os documentos originais e o valor da taxa de matrícula para a confirmação da vaga. Este documento não garante a matrícula até ao pagamento da mesma.</p>
+    </div>
+
+    <div class="carimbo">
+        <div class="linha-assinatura"></div>
+        <p style="font-size: 10px;">A Secretaria / Assinatura do Candidato</p>
+        <p style="font-size: 9px; margin-top: 20px;">Documento gerado em {{ inscricao.data_submissao|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <div class="footer">
+        Tarimba Project - Sistema de Gestão Académica Integrada
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-10 px-4 pb-24">
+    <div class="bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 mb-10">
+        <div class="relative group">
+            {% if inscricao.foto_tipo_passe %}
+                <img src="{{ inscricao.foto_tipo_passe.url }}" class="w-32 h-32 rounded-[2.5rem] object-cover border-4 border-orange-50 shadow-lg group-hover:scale-105 transition duration-500">
+            {% else %}
+                <div class="w-32 h-32 bg-orange-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-inner border-2 border-dashed border-orange-200">👤</div>
+            {% endif %}
+            <div class="absolute -bottom-2 -right-2 bg-tarimba text-white p-2 rounded-xl shadow-lg">
+                <i class="fas fa-camera text-xs"></i>
+            </div>
+        </div>
+
+        <div class="text-center md:text-left flex-grow">
+            <span class="text-[10px] font-black text-tarimba uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">Estudante Ativo</span>
+            <h1 class="text-4xl font-black text-gray-900 mt-2 tracking-tighter">{{ request.user.get_full_name }}</h1>
+            <p class="text-gray-500 font-medium mt-1">Nº de Processo: <span class="text-gray-900 font-bold">{{ aluno.numero_processo }}</span></p>
+        </div>
+
+        <div class="flex gap-3">
+            <div class="text-center px-6 py-3 bg-gray-50 rounded-2xl border border-gray-100">
+                <p class="text-[9px] font-black text-gray-400 uppercase">Ano Lectivo</p>
+                <p class="font-black text-gray-800 tracking-tighter">2025/2026</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-10">
+        <div class="md:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-10 shadow-sm border border-gray-100">
+            <h3 class="text-sm font-black text-gray-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                <i class="fas fa-id-card-alt text-tarimba"></i> Informações Pessoais
+            </h3>
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid md:grid-cols-2 gap-6">
+                    {% for field in form %}
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="pt-6">
+                    <button type="submit" class="bg-gray-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-tarimba transition shadow-lg shadow-gray-100">
+                        Actualizar Contactos
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Ficheiros</h3>
+                <div class="space-y-4">
+                    {% if inscricao %}
+                        <a href="{{ inscricao.bi_frente.url }}" target="_blank" class="flex items-center gap-4 p-4 bg-orange-50 rounded-2xl group hover:bg-tarimba transition">
+                            <i class="fas fa-file-pdf text-tarimba group-hover:text-white"></i>
+                            <span class="text-xs font-black text-gray-700 group-hover:text-white uppercase">Bilhete de Identidade</span>
+                        </a>
+                        <a href="{{ inscricao.certificado_anterior.url }}" target="_blank" class="flex items-center gap-4 p-4 bg-orange-50 rounded-2xl group hover:bg-tarimba transition">
+                            <i class="fas fa-graduation-cap text-tarimba group-hover:text-white"></i>
+                            <span class="text-xs font-black text-gray-700 group-hover:text-white uppercase">Certificado Escolar</span>
+                        </a>
+                    {% else %}
+                        <p class="text-xs text-gray-400 italic">Nenhum documento digitalizado encontrado.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-tarimba rounded-[2.5rem] p-8 text-white shadow-xl shadow-orange-100 relative overflow-hidden group">
+                <i class="fas fa-shield-alt absolute -right-4 -bottom-4 text-7xl opacity-10 group-hover:scale-125 transition duration-700"></i>
+                <h4 class="font-black text-lg mb-2">Segurança</h4>
+                <p class="text-[10px] font-medium opacity-80 mb-6">Mantenha os seus dados de acesso seguros e não partilhe a sua senha.</p>
+                <a href="#" class="inline-block text-[10px] font-black bg-white text-tarimba px-4 py-2 rounded-xl uppercase hover:bg-orange-50 transition">Alterar Senha</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

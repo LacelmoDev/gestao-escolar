@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Relatório — {{ turma }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-12">
+
+  <!-- Cabeçalho -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+    <div>
+      <h1 class="text-4xl font-black text-gray-900 tracking-tighter italic">
+        📋 Relatório — <span class="text-tarimba">{{ turma }}</span>
+      </h1>
+      <p class="text-gray-400 mt-1 font-bold uppercase text-[10px] tracking-[0.3em]">
+        Prof. {{ professor }}
+      </p>
+    </div>
+    <a href="{% url 'turma_detalhe' turma.id %}"
+       class="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:border-gray-400 transition">
+      <i class="fas fa-arrow-left text-[10px]"></i> Voltar à Turma
+    </a>
+  </div>
+
+  <!-- CARDS RESUMO -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-blue-500 mb-1">{{ total_alunos }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total de Alunos</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-green-500 mb-1">{{ aprovados }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aprovados</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-red-500 mb-1">{{ reprovados }}</div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reprovados</div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center">
+      <div class="text-4xl font-black text-orange-500 mb-1">
+        {% if total_alunos > 0 %}{{ aprovados|floatformat:0 }}{% else %}0{% endif %}
+      </div>
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Taxa de Aprovação</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS: Médias + Faltas -->
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Médias por Aluno</h3>
+      <canvas id="chartMedias" height="200"></canvas>
+    </div>
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Faltas por Aluno</h3>
+      <canvas id="chartFaltas" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Médias por Disciplina -->
+  <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
+    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Médias por Disciplina</h3>
+    <canvas id="chartDisc" height="90"></canvas>
+  </div>
+
+  <!-- TABELA DE RANKING -->
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+    <div class="p-6 border-b border-gray-50">
+      <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Ranking de Desempenho</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            <th class="px-6 py-3 text-left">#</th>
+            <th class="px-6 py-3 text-left">Aluno</th>
+            <th class="px-6 py-3 text-center">Média</th>
+            <th class="px-6 py-3 text-center">Faltas</th>
+            <th class="px-6 py-3 text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for aluno in dados_alunos %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-black text-gray-400">{{ forloop.counter }}</td>
+            <td class="px-6 py-4 font-bold text-gray-900">{{ aluno.nome }}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="font-black text-lg {% if aluno.aprovado %}text-green-600{% else %}text-red-500{% endif %}">
+                {{ aluno.media }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center font-bold text-gray-500">{{ aluno.faltas }}</td>
+            <td class="px-6 py-4 text-center">
+              {% if aluno.aprovado %}
+                <span class="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase">Aprovado</span>
+              {% else %}
+                <span class="bg-red-100 text-red-600 text-[10px] font-black px-3 py-1 rounded-full uppercase">Reprovado</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">
+              Sem dados de notas para esta turma.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const nomes       = {{ nomes_json|safe }};
+const medias      = {{ medias_json|safe }};
+const faltas      = {{ faltas_json|safe }};
+const discLabels  = {{ medias_disc_labels|safe }};
+const discMedias  = {{ medias_disc_dados|safe }};
+
+// Médias por aluno (verde/vermelho conforme aprovação)
+new Chart(document.getElementById('chartMedias'), {
+  type: 'bar',
+  data: { labels: nomes, datasets: [{
+    label: 'Média',
+    data: medias,
+    backgroundColor: medias.map(m => m >= 10 ? '#2ECC71' : '#E74C3C'),
+    borderRadius: 6
+  }]},
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, max: 20, ticks: { stepSize: 2 } } }
+  }
+});
+
+// Faltas por aluno
+new Chart(document.getElementById('chartFaltas'), {
+  type: 'bar',
+  data: { labels: nomes, datasets: [{
+    label: 'Faltas',
+    data: faltas,
+    backgroundColor: '#F97316',
+    borderRadius: 6
+  }]},
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  }
+});
+
+// Médias por disciplina
+new Chart(document.getElementById('chartDisc'), {
+  type: 'bar',
+  data: { labels: discLabels, datasets: [{
+    label: 'Média',
+    data: discMedias,
+    backgroundColor: discMedias.map(m => m >= 10 ? '#4C9BE8' : '#E74C3C'),
+    borderRadius: 6
+  }]},
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, max: 20, ticks: { stepSize: 2 } } }
+  }
+});
+</script>
+{% endblock %}

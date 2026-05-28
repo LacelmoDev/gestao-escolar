@@ -1,0 +1,240 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <title>Tarimba - Complexo Escolar Privado J.M.F.D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-tarimba-orange { background-color: #F97316; } 
+        .text-tarimba-orange { color: #F97316; }
+        .border-tarimba-orange { border-color: #F97316; } 
+        .bg-tarimba { background-color: #F97316; }
+        .text-tarimba { color: #F97316; }
+        .bg-tarimba-orange { background-color: #F97316; } 
+        .text-tarimba-orange { color: #F97316; }
+        
+        
+        /* Animação suave para o menu */
+        #mobile-nav {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-nav.open {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <nav class="bg-tarimba-orange shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center justify-center w-16 h-16 transition-opacity hover:opacity-80">
+    <img src="{% static 'images/logo.png' %}" alt="Logo Tarimba" class="ww-full h-full object-contain brightness-0 invert">
+</a>
+                    <div class="text-white">
+                        <span class="font-black text-xl leading-none block uppercase">TARIMBA</span>
+                        <span class="text-[10px] opacity-80 block leading-none tracking-tight">C.E.P. J.M.F.D - CALUMBO</span>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8 text-white font-bold text-sm">
+                    <a href="{% url 'home' %}" class="hover:text-orange-200 transition">Início</a>
+                <a href="{% url 'precario' %}" class="hover:text-orange-200 transition">Preçario</a>
+                    <a href="{% url 'inscrever' %}" class="hover:text-orange-200 transition">Matrículas e Confirmações</a>
+                    <a href="{% url 'home' %}#cursos" class="hover:text-orange-200 transition">Cursos</a>
+                    <a href="{% url 'home' %}#contatos" class="hover:text-orange-200 transition">Contactos</a>
+                    <a href="{% url 'login' %}" class="bg-white text-tarimba-orange px-6 py-2 rounded-full hover:bg-orange-50 transition shadow-md">Entrar no Portal</a>
+                </div>
+
+                <div class="md:hidden flex items-center">
+                    <button id="hamburger-btn" class="text-white focus:outline-none p-2 border border-orange-400 rounded-lg">
+                        <svg id="menu-icon" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-nav" class="md:hidden bg-orange-700">
+            <div class="px-4 py-6 space-y-4">
+                <a href="{% url 'home' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Início</a>
+                <a href="{% url 'inscrever' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Matrículas e Confirmações</a>
+                <a href="{% url 'precario' %}" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Preçario</a>
+                <a href="{% url 'home' %}#cursos" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Cursos</a>
+                <a href="{% url 'home' %}#contatos" class="block text-white font-bold text-lg border-b border-orange-500 pb-2">Contactos</a>
+                <a href="{% url 'login' %}" class="block text-center bg-white text-tarimba-orange py-3 rounded-xl font-black shadow-lg">Entrar no Portal</a>
+            </div>
+        </div>
+    </nav> {% block content %}
+
+    <section class="relative bg-gradient-to-br from-orange-50 to-white py-16 md:py-28 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+            <div class="relative z-10 text-center md:text-left">
+                <div class="inline-block bg-orange-100 text-tarimba-orange px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-6">
+                    Inscrições Abertas • 2025-2026
+                </div>
+                <h1 class="text-5xl md:text-8xl font-black text-gray-900 leading-none">
+                    ESTÃO <span class="text-tarimba-orange">ABERTAS</span>
+                </h1>
+                <p class="text-xl md:text-2xl font-bold text-gray-700 mt-2 uppercase tracking-tight">As confirmações e Matrículas</p>
+                
+                <p class="text-lg text-gray-600 mt-8 max-w-lg mx-auto md:mx-0">
+                    Ensino Pré-Escolar, Ensino Primário, I e II Ciclo do Ensino Secundário. Ensino Geral e Técnico Profissional.
+                </p>
+
+                <div class="mt-10 flex flex-col sm:flex-row justify-center md:justify-start gap-4">
+                    <a href="{% url 'inscrever' %}" class="bg-tarimba-orange text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-orange-600 transition shadow-2xl hover:-translate-y-1">INSCREVER AGORA</a>
+                    <a href="#cursos" class="bg-white border-2 border-tarimba-orange text-tarimba-orange px-10 py-5 rounded-2xl font-black text-lg hover:bg-orange-50 transition text-center">VER CURSOS</a>
+                </div>
+            </div>
+
+            <div class="relative">
+                <div class="bg-white p-4 rounded-[2rem] shadow-2xl transform md:rotate-3 border border-gray-100">
+                    <div class="bg-gray-200 w-full h-80 rounded-[1.5rem] flex items-center justify-center overflow-hidden">
+                     <img src="{% static 'images/colegio.jpeg' %}" alt="Estudantes do Colégio Tarimba" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div class="absolute -bottom-4 -left-2 md:-bottom-6 md:-left-6 bg-white p-4 md:p-6 rounded-2xl shadow-xl border-l-8 border-tarimba-orange block">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Propinas a partir de</p>
+                    <p class="text-xl md:text-2xl font-black text-gray-900">15.600,00 Kz</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cursos" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-black tracking-tighter uppercase">Nossa Oferta Académica</h2>
+                <div class="w-24 h-2 bg-tarimba-orange mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-tarimba-orange p-8 rounded-3xl text-white shadow-xl relative overflow-hidden group">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition duration-500">
+                        <svg class="w-40 h-40" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-black mb-6 border-b border-orange-400 pb-2 uppercase">Cursos</h3>
+                    <ul class="space-y-4 font-bold text-lg">
+                        <li class="flex items-center gap-2"><span>✔</span> TÉCNICO PROFISSIONAL</li>
+                        <li class="flex items-center gap-2"><span>✔</span> CONTABILIDADE DE GESTÃO</li>
+                        <li class="flex items-center gap-2"><span>✔</span> INFORMÁTICA DE GESTÃO</li>
+                    </ul>
+                    <p class="mt-8 text-xs font-medium opacity-80 uppercase tracking-widest">Informática e Caligrafia (4ª Classe)</p>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-3xl border-2 border-dashed border-gray-200 group">
+                    <h3 class="text-2xl font-black mb-6 text-gray-800 border-b border-gray-200 pb-2 uppercase">Documentos</h3>
+                    <ul class="space-y-3 text-gray-600 font-medium">
+                        <li>• Cópia do BI ou Cédula</li>
+                        <li>• 4 Fotografias tipo passe</li>
+                        <li>• Certificado Original</li>
+                        <li>• Declaração com Notas</li>
+                    </ul>
+                    <div class="mt-10 p-4 bg-white rounded-2xl shadow-sm italic text-xs text-tarimba-orange font-bold">
+                        "Documentos necessários para confirmação e matrícula"
+                    </div>
+                </div>
+
+                <div id="contatos" class="bg-gray-900 p-8 rounded-3xl text-white shadow-2xl">
+                    <h3 class="text-2xl font-black mb-6 border-b border-gray-700 pb-2 uppercase">Contactos</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-orange-400 text-xs font-bold uppercase">Telefone</p>
+                            <p class="text-xl font-black">928 098 791</p>
+                        </div>
+                        <div>
+                            <p class="text-orange-400 text-xs font-bold uppercase">Localização</p>
+                            <p class="text-sm opacity-80 leading-relaxed">Calumbo, Complexo Escolar Privado J.M.F.D Tarimba</p>
+                        </div>
+                      <div class="pt-4 flex items-center gap-4">
+    <p class="text-orange-400 text-xs font-bold uppercase">Redes Sociais</p>
+    
+    <a href="#" target="_blank" class="transition-transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+    </a>
+
+    <a href="#" target="_blank" class="transition-transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="#25D366" d="M17.472 14.382c-.301-.15-1.767-.872-2.04-.971-.272-.099-.47-.15-.669.15-.199.3-.771.971-.945 1.171-.174.199-.349.224-.65.074-.3-.15-1.267-.467-2.413-1.485-.893-.797-1.496-1.782-1.671-2.081-.174-.3-.018-.462.132-.61.135-.133.301-.35.451-.525.15-.175.199-.299.299-.499.1-.199.05-.375-.025-.525-.075-.15-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.299-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.767-.721 2.016-1.417.249-.695.249-1.291.174-1.417-.075-.126-.272-.199-.573-.349z"/>
+            <path fill="#25D366" d="M12.004 0C5.374 0 0 5.373 0 12c0 2.112.547 4.178 1.587 6.005L0 24l6.157-1.615c1.782.971 3.8 1.482 5.845 1.483h.005c6.627 0 12-5.373 12-12 0-3.201-1.246-6.211-3.511-8.475C18.232 1.247 15.222 0 12.004 0zM12 21.993c-1.791 0-3.543-.481-5.07-1.391l-.362-.215-3.771.989.989-3.66-.234-.375c-.922-1.477-1.411-3.187-1.411-4.942 0-5.18 4.214-9.395 9.397-9.395 2.51 0 4.87.977 6.645 2.751s2.753 4.136 2.753 6.644c0 5.182-4.215 9.394-9.396 9.394z"/>
+        </svg>
+    </a>
+</div>
+            </div>
+        </div>
+    </section>
+    {% endblock content %}
+    <footer class="bg-gray-900 text-gray-400 py-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                       <a href="/" class="flex items-center justify-center w-16 h-16 transition-opacity hover:opacity-80">
+    <img src="{% static 'images/logo.png' %}" alt="Logo Tarimba" class="ww-full h-full object-contain brightness-0 invert">
+</a>
+                        <span class="font-black text-2xl uppercase italic">TARIMBA</span>
+                    </div>
+                    <p id="nossa-missao" class="space-y-3 text-sm font-bold opacity-90" hidden>
+                        Nossa missão é formar cidadãos capacitados e técnicos de excelência para o mercado angolano. Educação com rigor, ética e inovação tecnológica.
+                    </p><br>
+                    <p id="sobre-nos" class="space-y-3 text-sm font-bold opacity-90" hidden>
+                        Sobre Nós<br>
+                        O Sistema de Gestão Académica Tarimba foi desenvolvido por alunos da 13ª Classe do Curso Técnico de Informática de Gestão do Complexo Escolar J.M.F.D Tarimba, como Projecto de Aptidão Profissional (PAP) no ano lectivo 2025/2026.
+                        A plataforma digitaliza os processos de matrícula e gestão académica do Colégio Tarimba 3, substituindo os registos manuais em papel por uma solução web moderna, segura e acessível.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-black text-lg mb-6 uppercase tracking-tighter">O Colégio</h4>
+                    <ul class="space-y-3 text-sm font-bold opacity-90">
+                        <li><a href="{% url 'home' %}#sobre-nos" class="hover:text-black transition" onclick="toggle('sobre-nos'); return false;">Sobre Nós</a></li>
+                        <li><a href="{% url 'home' %}#nossa-missao" class="hover:text-black transition" onclick="toggle('nossa-missao'); return false;">Nossa Missão</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-black text-lg mb-6 uppercase tracking-tighter">Área Restrita</h4>
+                    <ul class="space-y-3 text-sm font-bold opacity-90">
+                        <li><a href="{% url 'login' %}" class="hover:text-black transition">Portal do Aluno</a></li>
+                        <li><a href="{% url 'login' %}" class="hover:text-black transition">Portal do Professor</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-16 pt-8 border-t border-orange-400 text-center text-xs font-bold opacity-60 uppercase tracking-widest">
+               © 2026 Sistema Tarimba · PAP — Curso Técnico de Informática de Gestão · 13ª Classe · Complexo Escolar J.M.F.D Tarimba
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggle(id) {
+        const el = document.getElementById(id);
+        if (el.hidden) {
+            el.hidden = false;
+        } else {
+            el.hidden = true;
+        }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('hamburger-btn');
+            const menu = document.getElementById('mobile-nav');
+
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    menu.classList.toggle('open');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

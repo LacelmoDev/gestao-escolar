@@ -1,0 +1,37 @@
+{% extends "home.html" %}
+{% block title %}Página não encontrada — Tarimba{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-32 text-center">
+ <div class="text-[120px] font-black leading-none select-none 
+            bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 
+            bg-clip-text text-transparent drop-shadow-2xl">
+    404
+</div>
+  <h2 class="text-2xl font-black text-gray-900 mt-2 mb-3 tracking-tighter">Página não encontrada</h2>
+  <p class="text-gray-400 text-sm mb-8 leading-relaxed">
+    O endereço que tentaste aceder não existe ou foi removido.<br>
+    Se achares que isto é um erro, contacta a secretaria.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-3 justify-center">
+    <a href="{% url 'home' %}"
+       class="px-8 py-3 bg-tarimba-orange text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition shadow-lg shadow-orange-100">
+      🏠 Voltar à página inicial
+    </a>
+    {% if user.is_authenticated %}
+      {% if user.is_staff %}
+        <a href="/admin/" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition">
+          Painel Admin
+        </a>
+      {% elif user.is_professor %}
+        <a href="{% url 'professor_dashboard' %}" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition">
+          Meu Painel
+        </a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition">
+          Meu Painel
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

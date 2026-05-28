@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 pb-20">
+    <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-5">
+            <div class="text-6xl bg-white p-4 rounded-[2rem] shadow-sm border border-orange-50 font-black">🎓</div>
+            <div>
+                <h1 class="text-4xl font-black text-gray-900 tracking-tighter">
+                    {{ user.get_full_name|default:user.username }}
+                </h1>
+                <p class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+                    {% if ano_selecionado|slugify != "2026" %}
+                        Registro Histórico • {{ ano_selecionado }}
+                    {% else %}
+                        {{ aluno.turma.nome|default:"Aguardando Turma" }} • Processo: {{ aluno.numero_processo }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <form method="GET" class="w-full md:w-auto">
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Histórico por Ano</label>
+            <div class="relative">
+                <select name="ano" onchange="this.form.submit()" 
+                    class="appearance-none w-full md:w-48 bg-white border border-gray-100 py-3 px-5 pr-10 rounded-2xl font-black text-xs uppercase tracking-tighter shadow-sm focus:outline-none focus:ring-2 focus:ring-tarimba-orange/20 transition cursor-pointer">
+                    {% for ano in anos_disponiveis %}
+                        <option value="{{ ano }}" {% if ano|slugify == ano_selecionado|slugify %}selected{% endif %}>
+                            Ano Letivo {{ ano }}
+                        </option>
+                    {% empty %}
+                        <option value="2026">Ano Letivo 2026</option>
+                    {% endfor %}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <i class="fas fa-chevron-down text-[10px]"></i>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <h1 class="text-2xl font-black text-gray-900 tracking-tighter mb-6">Faltas em {{ ano_selecionado }}</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="p-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm">
+            <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2 italic">Não Justificadas</p>
+            <p class="text-5xl font-black text-gray-900">{{ faltas_nao_justificadas }}</p>
+        </div>
+        <div class="p-8 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm">
+            <p class="text-[10px] font-black text-green-500 uppercase tracking-widest mb-2 italic">Justificadas</p>
+            <p class="text-5xl font-black text-gray-900">{{ faltas_justificadas }}</p>
+        </div>
+        <div class="p-8 bg-tarimba-orange rounded-[2.5rem] shadow-xl shadow-orange-100">
+            <p class="text-[10px] font-black text-white/80 uppercase tracking-widest mb-2 italic">Em Análise</p>
+            <p class="text-5xl font-black text-white">{{ faltas_analise }}</p>
+        </div>
+    </div>
+
+    <section class="bg-white rounded-[3rem] border border-gray-100 shadow-xl overflow-hidden mb-12">
+        <div class="px-10 py-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+            <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest">Aproveitamento Escolar</h3>
+            <i class="fas fa-chart-line text-tarimba-orange opacity-30"></i>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <th class="px-10 py-5">Disciplina</th>
+                        <th class="px-10 py-5 text-center">Média Trimestral</th>
+                        <th class="px-10 py-5 text-right">Situação</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for nota in notas %}
+                    <tr class="hover:bg-gray-50 transition group">
+                        <td class="px-10 py-6 font-bold text-gray-800">{{ nota.disciplina.nome }}</td>
+                        <td class="px-10 py-6 text-center">
+                            <span class="text-2xl font-black {% if nota.media_trimestral >= 10 %}text-green-600{% else %}text-red-500{% endif %}">
+                                {{ nota.media_trimestral }}
+                            </span>
+                        </td>
+                        <td class="px-10 py-6 text-right">
+                            <span class="{% if nota.media_trimestral >= 10 %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-600{% endif %} px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                                {% if nota.media_trimestral >= 10 %}Aprovado{% else %}Reprovado{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="p-16 text-center text-gray-400 font-bold italic">Sem notas registradas para {{ ano_selecionado }}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="bg-white rounded-[3rem] border border-gray-100 shadow-xl overflow-hidden">
+        <div class="px-10 py-8 border-b border-gray-50 bg-gray-900 text-white">
+            <h3 class="text-sm font-black uppercase tracking-widest">Histórico de Ausências ({{ ano_selecionado }})</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <th class="px-10 py-5">Data</th>
+                        <th class="px-10 py-5">Disciplina</th>
+                        <th class="px-10 py-5 text-center">Estado</th>
+                        <th class="px-10 py-5 text-right">Acção</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for falta in todas_faltas %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-10 py-6 font-bold text-gray-700">{{ falta.data|date:"d/m/Y" }}</td>
+                        <td class="px-10 py-6 text-gray-500 font-medium">{{ falta.disciplina.nome }}</td>
+                        <td class="px-10 py-6 text-center">
+                            {% if falta.justificada %}
+                                <span class="text-green-600 font-black text-[10px] uppercase">Justificada</span>
+                            {% elif falta.documento_justificativo %}
+                                <span class="text-orange-500 font-black text-[10px] uppercase">Em Análise</span>
+                            {% else %}
+                                <span class="text-red-500 font-black text-[10px] uppercase">Não Justificada</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-10 py-6 text-right">
+                            {% if not falta.justificada and not falta.documento_justificativo %}
+                                <button onclick="openJustifyModal('{{ falta.id }}', '{{ falta.data|date:'d/m/Y' }} - {{ falta.disciplina.nome }}')"
+                                class="bg-gray-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-tarimba-orange transition">
+                                Justificar
+                                </button>
+                            {% elif falta.documento_justificativo %}
+                                <i class="fas fa-clock text-gray-300"></i>
+                            {% else %}
+                                <i class="fas fa-check-circle text-green-200"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="p-16 text-center text-gray-400 font-bold italic">Nenhuma falta registrada em {{ ano_selecionado }}.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div id="justifyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl">
+        <div class="mb-8 text-center">
+            <h3 class="text-2xl font-black text-gray-900 tracking-tighter uppercase">Justificar Falta</h3>
+            <p id="faltaInfo" class="text-tarimba-orange font-bold text-xs mt-1"></p>
+        </div>
+
+        <form method="POST" action="{% url 'justificar_falta' %}" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="presenca_id" id="presenca_id_input">
+            
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Documento (PDF/Imagem)</label>
+                <input type="file" name="documento" required class="w-full p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl font-bold text-xs file:hidden">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Observação</label>
+                <textarea name="observacao" rows="3" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-tarimba-orange outline-none text-sm font-medium" placeholder="Ex: Motivo de saúde..."></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="flex-grow bg-tarimba-orange text-white py-4 rounded-2xl font-black text-xs uppercase shadow-lg shadow-orange-100">Enviar Documento</button>
+                <button type="button" onclick="closeJustifyModal()" class="px-6 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black text-xs uppercase">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openJustifyModal(id, info) {
+        document.getElementById('presenca_id_input').value = id;
+        document.getElementById('faltaInfo').innerText = info;
+        document.getElementById('justifyModal').classList.remove('hidden');
+        document.getElementById('justifyModal').classList.add('flex');
+    }
+
+    function closeJustifyModal() {
+        document.getElementById('justifyModal').classList.add('hidden');
+        document.getElementById('justifyModal').classList.remove('flex');
+    }
+</script>
+{% endblock %}
