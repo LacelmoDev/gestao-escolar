@@ -88,6 +88,32 @@ class Presenca(models.Model):
         return f"{self.aluno.usuario.username} - {self.data} [{status}]"
 
 
+class Notificacao(models.Model):
+    TIPO_CHOICES = (
+        ('INSCRICAO', 'Nova Inscrição'),
+        ('MUDANCA_STATUS', 'Mudança de Status'),
+    )
+    inscricao           = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='notificacoes')
+    tipo                = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES, default='INSCRICAO')
+    lida                = models.BooleanField('Lida', default=False)
+    data_criacao        = models.DateTimeField('Data de Criação', auto_now_add=True)
+    data_leitura        = models.DateTimeField('Data de Leitura', blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Notificação"
+        verbose_name_plural = "Notificações"
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.inscricao.nome_completo}"
+
+    def marcar_como_lida(self):
+        from django.utils import timezone
+        self.lida = True
+        self.data_leitura = timezone.now()
+        self.save()
+
+
 class RelatoriosDashboard(models.Model):
     class Meta:
         verbose_name_plural = "📊 Ver Relatórios e Estatísticas"

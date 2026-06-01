@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',        # Deve vir antes do staticfiles
     'django.contrib.staticfiles',    
     'cloudinary',
+    'csp',
     'usuarios',
     'escola',
     'academico',
@@ -64,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware', 
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -224,4 +226,60 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+# ── SEGURANÇA — Headers HTTP (correcções ZAP) ──────────────────────────────
+
+# HSTS — força HTTPS (Strict-Transport-Security) - apenas em produção
+if ENV == 'production':
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True  # redireciona HTTP → HTTPS em produção
+else:
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_SSL_REDIRECT = False  # permite HTTP em desenvolvimento
+
+# Cookies seguros - apenas em produção
+if ENV == 'production':
+    SESSION_COOKIE_HTTPONLY = True   # Cookie sem HttpOnly (ZAP Baixo)
+    SESSION_COOKIE_SECURE = True     # só envia cookie em HTTPS
+    CSRF_COOKIE_HTTPONLY = False     # tem de ser False para o Django funcionar
+    CSRF_COOKIE_SECURE = True        # só envia cookie CSRF em HTTPS
+else:
+    SESSION_COOKIE_HTTPONLY = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_HTTPONLY = False
+    CSRF_COOKIE_SECURE = False
+
+# Content Security Policy (ZAP Médio)
+# Permite: o próprio domínio, CDNs usadas (Tailwind, FontAwesome, Google Fonts, Cloudinary)
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'script-src': (
+            "'self'",
+            "https://cdn.tailwindcss.com",
+            "https://cdnjs.cloudflare.com",
+        ),
+        'style-src': (
+            "'self'",
+            "'unsafe-inline'",  # necessário para Tailwind inline
+            "https://cdnjs.cloudflare.com",
+            "https://fonts.googleapis.com",
+        ),
+        'font-src': (
+            "'self'",
+            "https://fonts.gstatic.com",
+            "https://cdnjs.cloudflare.com",
+        ),
+        'img-src': (
+            "'self'",
+            "data:",
+            "https://res.cloudinary.com",
+        ),
+        'frame-ancestors': ("'none'",),  # impede clickjacking
+    }
 }

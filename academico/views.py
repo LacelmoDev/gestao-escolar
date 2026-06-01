@@ -8,7 +8,7 @@ from django.db.models import Count
 from xhtml2pdf import pisa
 import logging
 
-from .models import Nota, Aluno, Presenca, Inscricao
+from .models import Nota, Aluno, Presenca, Inscricao, Notificacao
 from .forms import InscricaoForm, PerfilAlunoForm
 from .utils import enviar_email_inscricao_recebida
 from escola.models import Professor, Turma, Atribuicao, Disciplina
@@ -40,6 +40,14 @@ def inscrever(request):
         if form.is_valid():
             inscricao = form.save()
             logger.info(f"✓ Inscrição criada com sucesso: {inscricao.id}")
+            
+            # Criar notificação para o admin
+            Notificacao.objects.create(
+                inscricao=inscricao,
+                tipo='INSCRICAO'
+            )
+            logger.info(f"✓ Notificação criada para inscrição: {inscricao.id}")
+            
             enviar_email_inscricao_recebida(inscricao)
             return render(request, 'academico/inscricao_sucesso.html', {'inscricao': inscricao})
         else:

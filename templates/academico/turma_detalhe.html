@@ -173,12 +173,18 @@ function calcularMedia() {
     const btn = document.getElementById('btnConfirmar');
     let erros = [];
 
-    if (mac < 0 || mac > 20) erros.push(`MAC (${mac}) fora do intervalo 0-20`);
-    if (npp < 0 || npp > 20) erros.push(`NPP (${npp}) fora do intervalo 0-20`);
-    if (npt < 0 || npt > 20) erros.push(`NPT (${npt}) fora do intervalo 0-20`);
+    // Validar limites individuais
+    if (mac < 0 || mac > 20) erros.push(`MAC (${mac}) deve estar entre 0 e 20`);
+    if (npp < 0 || npp > 20) erros.push(`NPP (${npp}) deve estar entre 0 e 20`);
+    if (npt < 0 || npt > 20) erros.push(`NPT (${npt}) deve estar entre 0 e 20`);
+    
+    // Validar média
+    const mediaNum = parseFloat(media);
+    if (mediaNum > 20) erros.push(`Média (${media}) não pode ser superior a 20`);
+    if (mediaNum < 0) erros.push(`Média (${media}) não pode ser negativa`);
 
     if (erros.length > 0) {
-        aviso.textContent = '⚠️ ' + erros.join(' · ');
+        aviso.innerHTML = '⚠️ <strong>Erro de Validação:</strong> ' + erros.join(' | ');
         aviso.classList.remove('hidden');
         btn.disabled = true;
         btn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -189,8 +195,28 @@ function calcularMedia() {
     }
 }
 
+// Validar entrada em tempo real (bloquear valores inválidos)
 ['input_mac', 'input_npp', 'input_npt'].forEach(id => {
-    document.getElementById(id).addEventListener('input', calcularMedia);
+    const input = document.getElementById(id);
+    
+    input.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        
+        // Bloquear valores fora do intervalo
+        if (value > 20) this.value = 20;
+        if (value < 0) this.value = 0;
+        
+        calcularMedia();
+    });
+    
+    // Bloquear entrada de caracteres inválidos
+    input.addEventListener('keypress', function(e) {
+        const char = e.key;
+        const allowed = /[0-9.,]/;
+        if (!allowed.test(char)) {
+            e.preventDefault();
+        }
+    });
 });
 
 // ── Modal Lançar Nota / Falta ─────────────────────────────────────────────

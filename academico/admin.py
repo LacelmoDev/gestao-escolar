@@ -3,7 +3,7 @@ import logging
 from django.contrib import admin, messages
 from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
-from .models import Inscricao, Aluno, Nota, Presenca, RelatoriosDashboard
+from .models import Inscricao, Aluno, Nota, Presenca, RelatoriosDashboard, Notificacao
 from usuarios.models import Usuario
 from .utils import _enviar_notificacao_status, _enviar_email_boas_vindas
 
@@ -125,6 +125,27 @@ admin.site.register(Presenca)
 class RelatoriosDashboardAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         return redirect('/relatorios/')
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(Notificacao)
+class NotificacaoAdmin(admin.ModelAdmin):
+    list_display = ('inscricao_nome', 'tipo', 'lida', 'data_criacao')
+    list_filter = ('tipo', 'lida', 'data_criacao')
+    search_fields = ('inscricao__nome_completo',)
+    readonly_fields = ('data_criacao', 'data_leitura')
+    actions = ['marcar_como_lido']
+
+    def inscricao_nome(self, obj):
+        return obj.inscricao.nome_completo
+    inscricao_nome.short_description = 'Inscrição'
+
+    @admin.action(description="Marcar como lido")
+    def marcar_como_lido(self, request, queryset):
+        count = queryset.update(lida=True)
+        self.message_user(request, f"{count} notificação(ões) marcada(s) como lida(s).")
 
     def has_add_permission(self, request):
         return False
