@@ -1,15 +1,41 @@
 import random
 import logging
 from django.contrib import admin, messages
+from django.contrib.admin import AdminSite
 from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
 from .models import Inscricao, Aluno, Nota, Presenca, RelatoriosDashboard, Notificacao
 from usuarios.models import Usuario
 from .utils import _enviar_notificacao_status, _enviar_email_boas_vindas
 
-
 logger = logging.getLogger("academico")
 
+
+# ── Sobrepõe o AdminSite para injectar notificações no index ───────────────
+# Fazemos isto aqui em vez de urls.py para evitar monkey-patching frágil
+
+_original_index = admin.AdminSite.index
+
+def _index_com_notificacoes(self, request, extra_context=None):
+    extra_context = extra_context or {}
+    try:
+        extra_context['inscricoes_pendentes'] = (
+            Inscricao.objects
+            .filter(status='PENDENTE')
+            .select_related('curso_pretendido')
+            .order_by('-data_submissao')[:10]
+        )
+    except Exception:
+        extra_context['inscricoes_pendentes'] = []
+    return _original_index(self, request, extra_context=extra_context)
+
+admin.AdminSite.index = _index_com_notificacoes
+admin.site.site_header = "Colégio Tarimba — Administração"
+admin.site.site_title = "Tarimba Admin"
+admin.site.index_title = "Painel de Controlo"
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
 
 def _gerar_senha():
     palavras = ["Tarimba", "Escola", "Aluno", "Gestao", "Portal"]
@@ -19,6 +45,8 @@ def _gerar_senha():
     return f"{palavra}@{letras}{numeros}"
 
 
+# ── InscricaoAdmin ─────────────────────────────────────────────────────────
+
 @admin.register(Inscricao)
 class InscricaoAdmin(admin.ModelAdmin):
     list_display = ('nome_completo', 'bi_numero', 'curso_pretendido', 'status', 'data_submissao')
@@ -26,7 +54,6 @@ class InscricaoAdmin(admin.ModelAdmin):
     actions = ['confirmar_para_pagamento', 'aprovar_e_gerar_aluno', 'rejeitar_inscricao']
 
     def save_model(self, request, obj, form, change):
-        """Envia email de rejeição ao salvar manualmente com status REJEITADO."""
         if change and 'status' in form.changed_data and obj.status == 'REJEITADO':
             _enviar_notificacao_status(obj, 'REJEITADO')
             self.message_user(request, f"E-mail de rejeição enviado para {obj.nome_completo}.")
@@ -58,7 +85,6 @@ class InscricaoAdmin(admin.ModelAdmin):
                 continue
 
             senha_temp = _gerar_senha()
-
             novo_usuario = Usuario.objects.create_user(
                 username=inscricao.bi_numero,
                 password=senha_temp,
@@ -83,8 +109,6 @@ class InscricaoAdmin(admin.ModelAdmin):
 
             inscricao.status = 'PAGO'
             inscricao.save(update_fields=['status'])
-
-            # Email de boas-vindas com credenciais
             _enviar_email_boas_vindas(inscricao, novo_usuario, senha_temp, turma_alocada, num_proc)
             criados += 1
 
@@ -108,9 +132,12 @@ class InscricaoAdmin(admin.ModelAdmin):
             self.message_user(request, "Nenhuma inscrição elegível para rejeição.", messages.WARNING)
 
 
+# ── AlunoAdmin ─────────────────────────────────────────────────────────────
+
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('numero_processo', 'get_nome', 'turma')
+    search_fields = ('usuario__first_name', 'usuario__last_name', 'numero_processo')
 
     def get_nome(self, obj):
         return obj.usuario.get_full_name()
@@ -121,6 +148,8 @@ admin.site.register(Nota)
 admin.site.register(Presenca)
 
 
+# ── RelatoriosDashboard — link para relatórios ─────────────────────────────
+
 @admin.register(RelatoriosDashboard)
 class RelatoriosDashboardAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
@@ -130,22 +159,19 @@ class RelatoriosDashboardAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(Notificacao)
-class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('inscricao_nome', 'tipo', 'lida', 'data_criacao')
-    list_filter = ('tipo', 'lida', 'data_criacao')
-    search_fields = ('inscricao__nome_completo',)
-    readonly_fields = ('data_criacao', 'data_leitura')
-    actions = ['marcar_como_lido']
-
-    def inscricao_nome(self, obj):
-        return obj.inscricao.nome_completo
-    inscricao_nome.short_description = 'Inscrição'
-
-    @admin.action(description="Marcar como lido")
-    def marcar_como_lido(self, request, queryset):
-        count = queryset.update(lida=True)
-        self.message_user(request, f"{count} notificação(ões) marcada(s) como lida(s).")
-
-    def has_add_permission(self, request):
-        return False
+# ── Notificacao — NÃO registada no admin (não deve aparecer no menu) ───────
+# O modelo existe apenas para uso interno — as notificações são mostradas
+# directamente no index do admin via o contexto injectado acima.
+# Se precisares gerir notificações manualmente, descomenta as linhas abaixo:
+#
+# @admin.register(Notificacao)
+# class NotificacaoAdmin(admin.ModelAdmin):
+#     list_display = ('inscricao_nome', 'tipo', 'lida', 'data_criacao')
+#     readonly_fields = ('data_criacao', 'data_leitura')
+#
+#     def inscricao_nome(self, obj):
+#         return obj.inscricao.nome_completo
+#     inscricao_nome.short_description = 'Inscrição'
+#
+#     def has_add_permission(self, request):
+#         return False

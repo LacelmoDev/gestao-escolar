@@ -6,7 +6,7 @@
 
 {% if inscricoes_pendentes %}
 <div style="margin-top: 20px;">
-    <div id="tarimba-notificacoes" style="
+    <div style="
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 8px;
@@ -30,7 +30,7 @@
                 font-weight: bold;
                 padding: 2px 10px;
                 border-radius: 20px;
-            ">{{ inscricoes_pendentes.count }}</span>
+            ">{{ inscricoes_pendentes|length }}</span>
         </div>
 
         <table style="width: 100%; border-collapse: collapse;">
@@ -45,7 +45,7 @@
             </thead>
             <tbody>
                 {% for inscricao in inscricoes_pendentes %}
-                <tr style="border-bottom: 1px solid #f5f5f5; {% if forloop.last %}border-bottom: none;{% endif %}">
+                <tr style="border-bottom: 1px solid #f5f5f5;">
                     <td style="padding: 12px 20px; font-size: 13px; font-weight: bold; color: #333;">
                         {{ inscricao.nome_completo }}
                     </td>
@@ -83,90 +83,6 @@
             <a href="{% url 'admin:academico_inscricao_changelist' %}?status__exact=PENDENTE"
                style="font-size: 12px; color: #E8621A; font-weight: bold; text-decoration: none;">
                 Ver todas as inscrições pendentes →
-            </a>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Nova seção de notificações -->
-{% if notificacoes_nao_lidas %}
-<div style="margin-top: 20px;">
-    <div id="tarimba-notificacoes-nao-lidas" style="
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 20px;
-    ">
-        <div style="
-            background: #2196F3;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        ">
-            <h2 style="margin: 0; color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.05em;">
-                📢 NOTIFICAÇÕES DE INSCRIÇÕES
-            </h2>
-            <span style="
-                background: rgba(255,255,255,0.3);
-                color: #fff;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 2px 10px;
-                border-radius: 20px;
-            ">{{ notificacoes_nao_lidas.count }}</span>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f9f9f9; border-bottom: 1px solid #eee;">
-                    <th style="padding: 10px 20px; text-align: left; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; font-weight: bold;">Nome</th>
-                    <th style="padding: 10px 20px; text-align: left; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; font-weight: bold;">Tipo</th>
-                    <th style="padding: 10px 20px; text-align: left; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; font-weight: bold;">Data</th>
-                    <th style="padding: 10px 20px; text-align: right; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; font-weight: bold;">Acção</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for notif in notificacoes_nao_lidas %}
-                <tr style="border-bottom: 1px solid #f5f5f5; {% if forloop.last %}border-bottom: none;{% endif %}; background: {% if not notif.lida %}#e3f2fd{% else %}#fff{% endif %};">
-                    <td style="padding: 12px 20px; font-size: 13px; font-weight: bold; color: #333;">
-                        {{ notif.inscricao.nome_completo }}
-                    </td>
-                    <td style="padding: 12px 20px; font-size: 12px; color: #555;">
-                        <span style="background: #2196F3; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">
-                            {{ notif.get_tipo_display }}
-                        </span>
-                    </td>
-                    <td style="padding: 12px 20px; font-size: 12px; color: #888;">
-                        {{ notif.data_criacao|date:"d/m/Y H:i" }}
-                    </td>
-                    <td style="padding: 12px 20px; text-align: right;">
-                        <a href="{% url 'admin:academico_inscricao_change' notif.inscricao.id %}"
-                           style="
-                               background: #2196F3;
-                               color: #fff;
-                               padding: 5px 14px;
-                               border-radius: 6px;
-                               font-size: 11px;
-                               font-weight: bold;
-                               text-decoration: none;
-                               text-transform: uppercase;
-                               letter-spacing: 0.05em;
-                           ">
-                            Ver Inscrição
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div style="padding: 10px 20px; background: #f9f9f9; border-top: 1px solid #eee; text-align: right;">
-            <a href="{% url 'admin:academico_notificacao_changelist' %}"
-               style="font-size: 12px; color: #2196F3; font-weight: bold; text-decoration: none;">
-                Ver todas as notificações →
             </a>
         </div>
     </div>
