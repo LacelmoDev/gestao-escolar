@@ -28,17 +28,14 @@
                     <td class="px-8 py-5 font-black text-gray-800">{{ aluno.usuario.get_full_name }}</td>
                     <td class="px-8 py-5 text-right">
                         <div class="flex justify-end gap-2">
-                            <!-- Ver Notas -->
                             <button onclick="verNotas('{{ aluno.id }}', '{{ aluno.usuario.get_full_name }}')"
                                     class="p-3 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl hover:bg-blue-100 transition text-[10px] font-black uppercase flex items-center gap-1">
                                 <i class="fas fa-chart-bar"></i> NOTAS
                             </button>
-                            <!-- Lançar Nota -->
                             <button onclick="openActionModal('nota', '{{ aluno.id }}', '{{ aluno.usuario.get_full_name }}')"
                                     class="p-3 bg-gray-900 text-white rounded-xl hover:bg-tarimba transition text-[10px] font-black uppercase">
                                 + NOTA
                             </button>
-                            <!-- Registar Falta -->
                             <button onclick="openActionModal('falta', '{{ aluno.id }}', '{{ aluno.usuario.get_full_name }}')"
                                     class="p-3 bg-white border border-gray-200 text-red-500 rounded-xl hover:border-red-500 transition">
                                 <i class="fas fa-user-times"></i>
@@ -46,7 +43,6 @@
                         </div>
                     </td>
                 </tr>
-                {% endfor %}
                 {% empty %}
                 <tr>
                     <td colspan="3" class="px-8 py-12 text-center text-gray-400 font-bold">
@@ -59,7 +55,7 @@
     </div>
 </div>
 
-<!-- Modal de Lançar Nota / Registar Falta -->
+<!-- Modal Lançar Nota / Registar Falta -->
 <div id="modalContainer" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-2xl overflow-hidden relative">
         <div class="mb-8">
@@ -107,12 +103,10 @@
                                class="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-center font-black focus:border-tarimba outline-none">
                     </div>
                 </div>
-                <!-- Média calculada ao vivo -->
                 <div class="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex items-center justify-between">
                     <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Média Trimestral</span>
                     <span id="media_preview" class="text-2xl font-black text-tarimba">0.0</span>
                 </div>
-                <!-- Aviso de nota inválida -->
                 <div id="aviso_nota" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs font-bold px-4 py-3 rounded-2xl"></div>
             </div>
 
@@ -138,9 +132,9 @@
     </div>
 </div>
 
-<!-- Modal de Visualização de Notas -->
+<!-- Modal Ver Notas -->
 <div id="modalNotas" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto">
+    <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <div class="mb-8 flex justify-between items-start">
             <div>
                 <h3 class="text-3xl font-black text-gray-900 tracking-tighter">NOTAS</h3>
@@ -150,7 +144,6 @@
                 <i class="fas fa-times text-gray-500"></i>
             </button>
         </div>
-
         <div id="notasConteudo">
             <div class="text-center py-8 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
@@ -161,30 +154,21 @@
 </div>
 
 <script>
-// ── Validação de notas ────────────────────────────────────────────────────
 function calcularMedia() {
     const mac = parseFloat(document.getElementById('input_mac').value) || 0;
     const npp = parseFloat(document.getElementById('input_npp').value) || 0;
     const npt = parseFloat(document.getElementById('input_npt').value) || 0;
-    const media = ((mac + npp + npt) / 3).toFixed(1);
-    document.getElementById('media_preview').innerText = media;
+    document.getElementById('media_preview').innerText = ((mac + npp + npt) / 3).toFixed(1);
 
     const aviso = document.getElementById('aviso_nota');
     const btn = document.getElementById('btnConfirmar');
     let erros = [];
+    if (mac < 0 || mac > 20) erros.push('MAC fora de 0-20');
+    if (npp < 0 || npp > 20) erros.push('NPP fora de 0-20');
+    if (npt < 0 || npt > 20) erros.push('NPT fora de 0-20');
 
-    // Validar limites individuais
-    if (mac < 0 || mac > 20) erros.push(`MAC (${mac}) deve estar entre 0 e 20`);
-    if (npp < 0 || npp > 20) erros.push(`NPP (${npp}) deve estar entre 0 e 20`);
-    if (npt < 0 || npt > 20) erros.push(`NPT (${npt}) deve estar entre 0 e 20`);
-    
-    // Validar média
-    const mediaNum = parseFloat(media);
-    if (mediaNum > 20) erros.push(`Média (${media}) não pode ser superior a 20`);
-    if (mediaNum < 0) erros.push(`Média (${media}) não pode ser negativa`);
-
-    if (erros.length > 0) {
-        aviso.innerHTML = '⚠️ <strong>Erro de Validação:</strong> ' + erros.join(' | ');
+    if (erros.length) {
+        aviso.textContent = '⚠️ ' + erros.join(' · ');
         aviso.classList.remove('hidden');
         btn.disabled = true;
         btn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -195,57 +179,28 @@ function calcularMedia() {
     }
 }
 
-// Validar entrada em tempo real (bloquear valores inválidos)
 ['input_mac', 'input_npp', 'input_npt'].forEach(id => {
-    const input = document.getElementById(id);
-    
-    input.addEventListener('input', function() {
-        let value = parseFloat(this.value);
-        
-        // Bloquear valores fora do intervalo
-        if (value > 20) this.value = 20;
-        if (value < 0) this.value = 0;
-        
-        calcularMedia();
-    });
-    
-    // Bloquear entrada de caracteres inválidos
-    input.addEventListener('keypress', function(e) {
-        const char = e.key;
-        const allowed = /[0-9.,]/;
-        if (!allowed.test(char)) {
-            e.preventDefault();
-        }
-    });
+    document.getElementById(id).addEventListener('input', calcularMedia);
 });
 
-// ── Modal Lançar Nota / Falta ─────────────────────────────────────────────
 function openActionModal(type, id, name) {
-    const modal = document.getElementById('modalContainer');
-    const form = document.getElementById('mainActionForm');
-    const title = document.getElementById('modalTitle');
-    const notaInputs = document.getElementById('notaInputs');
-    const faltaInputs = document.getElementById('faltaInputs');
-
     document.getElementById('hidden_aluno_id').value = id;
     document.getElementById('modalStudent').innerText = name;
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    document.getElementById('modalContainer').classList.remove('hidden');
+    document.getElementById('modalContainer').classList.add('flex');
 
     if (type === 'nota') {
-        title.innerText = "LANÇAR NOTAS";
-        form.action = "{% url 'lancar_nota_rapida' %}";
-        notaInputs.classList.remove('hidden');
-        faltaInputs.classList.add('hidden');
-        // Reset campos
+        document.getElementById('modalTitle').innerText = 'LANÇAR NOTAS';
+        document.getElementById('mainActionForm').action = "{% url 'lancar_nota_rapida' %}";
+        document.getElementById('notaInputs').classList.remove('hidden');
+        document.getElementById('faltaInputs').classList.add('hidden');
         ['input_mac', 'input_npp', 'input_npt'].forEach(id => document.getElementById(id).value = 0);
         calcularMedia();
     } else {
-        title.innerText = "REGISTAR FALTA";
-        form.action = "{% url 'marcar_falta_rapida' %}";
-        notaInputs.classList.add('hidden');
-        faltaInputs.classList.remove('hidden');
+        document.getElementById('modalTitle').innerText = 'REGISTAR FALTA';
+        document.getElementById('mainActionForm').action = "{% url 'marcar_falta_rapida' %}";
+        document.getElementById('notaInputs').classList.add('hidden');
+        document.getElementById('faltaInputs').classList.remove('hidden');
     }
 }
 
@@ -254,67 +209,39 @@ function closeActionModal() {
     document.getElementById('modalContainer').classList.remove('flex');
 }
 
-// ── Modal Ver Notas ───────────────────────────────────────────────────────
 function verNotas(alunoId, nome) {
     document.getElementById('notasStudentName').innerText = nome;
     document.getElementById('modalNotas').classList.remove('hidden');
     document.getElementById('modalNotas').classList.add('flex');
 
     const conteudo = document.getElementById('notasConteudo');
-    conteudo.innerHTML = `
-        <div class="text-center py-8 text-gray-400">
-            <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
-            <p class="font-bold text-sm">A carregar notas...</p>
-        </div>`;
+    conteudo.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i><p class="font-bold text-sm">A carregar notas...</p></div>';
 
-    fetch(`/professor/aluno/${alunoId}/notas/?turma={{ turma.id }}`)
+    fetch('/professor/aluno/' + alunoId + '/notas/?turma={{ turma.id }}')
         .then(r => r.json())
         .then(data => {
             if (!data.notas || data.notas.length === 0) {
-                conteudo.innerHTML = `
-                    <div class="text-center py-8 text-gray-400">
-                        <i class="fas fa-inbox text-3xl mb-3"></i>
-                        <p class="font-bold">Nenhuma nota lançada ainda.</p>
-                    </div>`;
+                conteudo.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-3 block"></i><p class="font-bold">Nenhuma nota lançada ainda.</p></div>';
                 return;
             }
-
-            // Agrupa por disciplina
             const porDisc = {};
             data.notas.forEach(n => {
                 if (!porDisc[n.disciplina]) porDisc[n.disciplina] = [];
                 porDisc[n.disciplina].push(n);
             });
-
             let html = '';
             for (const [disc, notas] of Object.entries(porDisc)) {
-                html += `
-                <div class="mb-6">
-                    <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">${disc}</h4>
-                    <div class="space-y-2">`;
+                html += '<div class="mb-6"><h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">' + disc + '</h4><div class="space-y-2">';
                 notas.sort((a, b) => a.trimestre - b.trimestre).forEach(n => {
-                    const mediaColor = n.media >= 10 ? 'text-green-600' : 'text-red-500';
-                    html += `
-                        <div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3">
-                            <span class="text-xs font-bold text-gray-500">${n.trimestre}º Trimestre</span>
-                            <div class="flex gap-4 text-xs font-black">
-                                <span class="text-gray-400">MAC <span class="text-gray-700">${n.mac}</span></span>
-                                <span class="text-gray-400">NPP <span class="text-gray-700">${n.npp}</span></span>
-                                <span class="text-gray-400">NPT <span class="text-gray-700">${n.npt}</span></span>
-                                <span class="text-gray-400">Média <span class="${mediaColor}">${n.media}</span></span>
-                            </div>
-                        </div>`;
+                    const cor = n.media >= 10 ? 'text-green-600' : 'text-red-500';
+                    html += '<div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3"><span class="text-xs font-bold text-gray-500">' + n.trimestre + 'º Trimestre</span><div class="flex gap-4 text-xs font-black"><span class="text-gray-400">MAC <span class="text-gray-700">' + n.mac + '</span></span><span class="text-gray-400">NPP <span class="text-gray-700">' + n.npp + '</span></span><span class="text-gray-400">NPT <span class="text-gray-700">' + n.npt + '</span></span><span class="text-gray-400">Média <span class="' + cor + '">' + n.media + '</span></span></div></div>';
                 });
-                html += `</div></div>`;
+                html += '</div></div>';
             }
             conteudo.innerHTML = html;
         })
         .catch(() => {
-            conteudo.innerHTML = `
-                <div class="text-center py-8 text-red-400">
-                    <i class="fas fa-exclamation-triangle text-2xl mb-3"></i>
-                    <p class="font-bold text-sm">Erro ao carregar notas.</p>
-                </div>`;
+            conteudo.innerHTML = '<div class="text-center py-8 text-red-400"><i class="fas fa-exclamation-triangle text-2xl mb-3 block"></i><p class="font-bold text-sm">Erro ao carregar notas.</p></div>';
         });
 }
 
@@ -323,7 +250,6 @@ function closeNotasModal() {
     document.getElementById('modalNotas').classList.remove('flex');
 }
 
-// Fecha modais ao clicar fora
 document.getElementById('modalContainer').addEventListener('click', function(e) {
     if (e.target === this) closeActionModal();
 });
