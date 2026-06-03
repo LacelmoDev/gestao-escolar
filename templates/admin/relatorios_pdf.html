@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Relatório Tarimba {{ ano }}</title>
+    <style>
+        body { font-family: DejaVu Sans, Arial, sans-serif; color: #222; margin: 20px; }
+        h1, h2 { margin: 0 0 10px 0; }
+        .header { margin-bottom: 20px; }
+        .box { margin-bottom: 18px; padding: 12px; border: 1px solid #ccc; }
+        .box strong { display: inline-block; width: 160px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        th, td { border: 1px solid #999; padding: 6px 8px; font-size: 11px; }
+        th { background: #f0f0f0; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório Geral Tarimba</h1>
+        <p>Ano Letivo {{ ano }}</p>
+    </div>
+
+    <div class="box">
+        <h2>Resumo</h2>
+        <p><strong>Total de inscrições:</strong> {{ total_inscricoes }}</p>
+        <p><strong>Total de turmas:</strong> {{ total_turmas }}</p>
+        <p><strong>Total de professores:</strong> {{ total_professores }}</p>
+        <p><strong>Total de faltas:</strong> {{ total_faltas_global }}</p>
+        <p><strong>Faltas justificadas:</strong> {{ pct_justificadas }}%</p>
+    </div>
+
+    <div class="box">
+        <h2>Inscrições por status</h2>
+        <table>
+            <thead>
+                <tr><th>Status</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                {% for status, total in status_pairs %}
+                <tr><td>{{ status }}</td><td>{{ total }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2">Nenhum registro de inscrição.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>Turmas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Turma</th>
+                    <th>Curso</th>
+                    <th>Classe</th>
+                    <th>Ano</th>
+                    <th>Vagas</th>
+                    <th>Alunos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turma in turmas %}
+                <tr>
+                    <td>{{ turma.nome }}</td>
+                    <td>{{ turma.curso.nome }}</td>
+                    <td>{{ turma.get_classe_display }}</td>
+                    <td>{{ turma.ano_letivo }}</td>
+                    <td>{{ turma.vagas }}</td>
+                    <td>{{ turma.num_alunos }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Nenhuma turma encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>Médias por disciplina</h2>
+        <table>
+            <thead>
+                <tr><th>Disciplina</th><th>Média</th></tr>
+            </thead>
+            <tbody>
+                {% for item in disciplinas_rows %}
+                <tr><td>{{ item.disciplina }}</td><td>{{ item.media }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2">Nenhuma disciplina encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>Assiduidade por turma</h2>
+        <table>
+            <thead>
+                <tr><th>Turma</th><th>Presenças</th><th>Faltas</th></tr>
+            </thead>
+            <tbody>
+                {% for row in assiduidade_rows %}
+                <tr>
+                    <td>{{ row.turma }}</td>
+                    <td>{{ row.presentes }}</td>
+                    <td>{{ row.faltas }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">Nenhum registo de assiduidade.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

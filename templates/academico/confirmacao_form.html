@@ -1,0 +1,68 @@
+{% extends 'home.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 mb-20 px-4">
+    <div class="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-gray-100">
+        <div class="mb-10">
+            <div class="text-4xl mb-4">📋</div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tighter">Confirmação de Matrícula</h1>
+            <p class="text-gray-500 font-medium mt-2">Ano Lectivo <strong>{{ ano_letivo }}</strong></p>
+        </div>
+
+        <div class="bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-8">
+            <p class="text-sm font-bold text-gray-700">
+                <span class="text-tarimba">Classe actual:</span> {{ classe_atual }}ª Classe
+                &nbsp;→&nbsp;
+                <span class="text-tarimba">Nova classe:</span>
+                {% if proxima_classe %}{{ proxima_classe }}ª Classe{% else %}Última classe{% endif %}
+            </p>
+            {% if precisa_escolher_curso %}
+            <p class="text-sm font-bold text-orange-700 mt-2">
+                ⚠️ Concluíste a 9ª Classe — deves escolher o curso para o II Ciclo.
+            </p>
+            {% endif %}
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Foto de Rosto *</label>
+                <input type="file" name="foto_rosto" accept="image/*" required
+                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Número do B.I. *</label>
+                <input type="text" name="bi_numero" required placeholder="Ex: 005123456LA042"
+                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">E-mail de Contacto *</label>
+                <input type="email" name="email" required placeholder="teu@email.com"
+                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
+            </div>
+
+            {% if precisa_escolher_curso %}
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Curso para a 10ª Classe *</label>
+                <select name="curso_novo" required
+                        class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
+                    <option value="">-- Selecciona o curso --</option>
+                    {% for curso in cursos_ii_ciclo %}
+                    <option value="{{ curso.id }}">{{ curso.nome }} ({{ curso.get_tipo_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="pt-4">
+                <button type="submit"
+                        class="w-full bg-tarimba text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-orange-600 transition shadow-xl shadow-orange-100">
+                    Submeter Confirmação
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

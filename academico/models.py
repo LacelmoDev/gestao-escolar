@@ -119,3 +119,63 @@ class RelatoriosDashboard(models.Model):
         verbose_name_plural = "📊 Ver Relatórios e Estatísticas"
         managed = False
         app_label = "academico"
+
+
+class ConfirmacaoMatricula(models.Model):
+    """
+    Controla o processo de confirmação de matrícula anual de alunos já existentes.
+    Fluxo: EM_REVISAO → AGUARDANDO_PAGAMENTO → ATIVO / REJEITADO
+    """
+    STATUS_CHOICES = (
+        ('EM_REVISAO',           'Em Revisão'),
+        ('AGUARDANDO_PAGAMENTO', 'Aguardando Pagamento'),
+        ('ATIVO',                'Ativo'),
+        ('REJEITADO',            'Rejeitado'),
+    )
+
+    aluno           = models.ForeignKey(
+        'Aluno', on_delete=models.CASCADE,
+        related_name='confirmacoes', verbose_name='Aluno'
+    )
+    ano_letivo      = models.IntegerField('Ano Lectivo')
+    foto_rosto      = models.ImageField(
+        'Foto de Rosto', upload_to='tarimba/confirmacoes/fotos/'
+    )
+    bi_numero       = models.CharField('Número do B.I.', max_length=20)
+    email           = models.EmailField('E-mail de Contacto')
+
+    # Classe e curso calculados automaticamente (ou escolhidos pelo aluno se 9→10)
+    classe_nova     = models.CharField(
+        'Nova Classe', max_length=3,
+        choices=Turma.CLASSES_CHOICES
+    )
+    curso_novo      = models.ForeignKey(
+        Curso, on_delete=models.PROTECT,
+        verbose_name='Novo Curso', null=True, blank=True
+    )
+
+    status          = models.CharField(
+        max_length=25, choices=STATUS_CHOICES, default='EM_REVISAO'
+    )
+    motivo_rejeicao = models.TextField('Motivo de Rejeição', blank=True, null=True)
+    data_submissao  = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Confirmação de Matrícula'
+        verbose_name_plural = 'Confirmações de Matrícula'
+        unique_together = ('aluno', 'ano_letivo')
+        ordering = ['-data_submissao']
+
+    def __str__(self):
+        return f"{self.aluno} — {self.ano_letivo} ({self.get_status_display()})"
+
+    @staticmethod
+    def calcular_proxima_classe(classe_atual):
+        """Devolve a próxima classe na sequência. Retorna None se for a última."""
+        ordem = ['INI','1','2','3','4','5','6','7','8','9','10','11','12','13']
+        try:
+            idx = ordem.index(str(classe_atual))
+            return ordem[idx + 1] if idx + 1 < len(ordem) else None
+        except ValueError:
+            return None

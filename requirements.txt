@@ -47,3 +47,4 @@ xhtml2pdf==0.2.17
 sib-api-v3-sdk
 sib-api-v3-sdk
 django-csp
+openpyxl
