@@ -1,7 +1,44 @@
-from django.db import models
+from django.db import models, transaction
 from decimal import Decimal
 from usuarios.models import Usuario
 from escola.models import Curso, Turma, Disciplina
+
+
+class AnoLetivoManager(models.Manager):
+    def get_current(self):
+        return self.filter(atual=True).first()
+
+    def activate(self, ano):
+        with transaction.atomic():
+            atual = self.filter(atual=True).first()
+            if atual and atual.ano != ano:
+                atual.atual = False
+                atual.save(update_fields=['atual'])
+            obj, created = self.get_or_create(ano=ano)
+            if not obj.atual:
+                obj.atual = True
+                obj.save(update_fields=['atual'])
+            return obj
+
+
+class AnoLetivo(models.Model):
+    ano = models.IntegerField('Ano Lectivo', unique=True)
+    atual = models.BooleanField('Ano Atual', default=False)
+
+    objects = AnoLetivoManager()
+
+    class Meta:
+        verbose_name = 'Ano Letivo'
+        verbose_name_plural = 'Anos Letivos'
+        ordering = ['-ano']
+
+    def __str__(self):
+        return str(self.ano)
+
+    def save(self, *args, **kwargs):
+        if self.atual:
+            AnoLetivo.objects.exclude(pk=self.pk).update(atual=False)
+        super().save(*args, **kwargs)
 
 
 class Inscricao(models.Model):
@@ -123,8 +160,9 @@ class RelatoriosDashboard(models.Model):
 
 class ConfirmacaoMatricula(models.Model):
     """
-    Controla o processo de confirmação de matrícula anual de alunos já existentes.
+    Controla o processo de confirmação de matrícula anual de alunos já existentes ou visitantes.
     Fluxo: EM_REVISAO → AGUARDANDO_PAGAMENTO → ATIVO / REJEITADO
+    Permite tanto alunos autenticados como visitantes não autenticados.
     """
     STATUS_CHOICES = (
         ('EM_REVISAO',           'Em Revisão'),
@@ -135,7 +173,11 @@ class ConfirmacaoMatricula(models.Model):
 
     aluno           = models.ForeignKey(
         'Aluno', on_delete=models.CASCADE,
-        related_name='confirmacoes', verbose_name='Aluno'
+        related_name='confirmacoes', verbose_name='Aluno',
+        null=True, blank=True  # Permite confirmações de visitantes não autenticados
+    )
+    nome_completo   = models.CharField(
+        'Nome Completo', max_length=255, blank=True, null=True
     )
     ano_letivo      = models.IntegerField('Ano Lectivo')
     foto_rosto      = models.ImageField(

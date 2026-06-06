@@ -17,6 +17,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 
 from .models import Aluno, ConfirmacaoMatricula, Nota, Presenca, Inscricao
+from .services import get_ano_letivo_atual
 from escola.models import Curso, Turma, Disciplina, Atribuicao, Professor
 from .utils import _enviar_email_async
 
@@ -27,7 +28,9 @@ def _email_confirmacao(confirmacao, tipo):
     """Envia emails automáticos conforme o status da confirmação de matrícula."""
     from django.conf import settings
 
-    nome = confirmacao.aluno.usuario.get_full_name() or confirmacao.aluno.usuario.username
+    nome = (confirmacao.nome_completo or
+            (confirmacao.aluno.usuario.get_full_name() if confirmacao.aluno else None) or
+            (confirmacao.aluno.usuario.username if confirmacao.aluno else 'Aluno'))
     email = confirmacao.email
 
     if not email:
@@ -106,48 +109,95 @@ def _email_confirmacao(confirmacao, tipo):
 
 # ── Feature 1: Confirmação de Matrícula ──────────────────────────────────
 
-@login_required
 def confirmacao_matricula(request):
     """
-    Formulário de confirmação de matrícula para alunos existentes.
-    Calcula automaticamente a próxima classe.
-    Se o aluno veio da 9ª, pede para escolher o curso do II Ciclo.
+    Formulário de confirmação de matrícula para alunos existentes ou visitantes.
+    - Se aluno logado: preenche dados automaticamente
+    - Se visitante: permite preencher todos os dados
+    Calcula automaticamente a próxima classe para alunos já no sistema.
     """
-    try:
-        aluno = Aluno.objects.select_related('turma__curso').get(usuario=request.user)
-    except Aluno.DoesNotExist:
-        messages.error(request, "Perfil de aluno não encontrado.")
-        return redirect('dashboard')
+    ano_letivo = get_ano_letivo_atual()
+    aluno = None
+    classe_atual = None
+    proxima_classe = None
+    precisa_escolher_curso = False
+    cursos_ii_ciclo = None
+    usuario_logado = request.user.is_authenticated
 
-    ano_letivo = timezone.now().year
-    classe_atual = aluno.turma.classe if aluno.turma else None
+    def _achar_aluno_por_bi_e_nome(bi, nome):
+        if not bi:
+            return None
+        aluno_obj = Aluno.objects.select_related('turma__curso', 'usuario').filter(usuario__bi_numero=bi).first()
+        if aluno_obj:
+            return aluno_obj
+        if nome:
+            partes = nome.strip().split()
+            if len(partes) >= 2:
+                first_name = partes[0]
+                last_name = ' '.join(partes[1:])
+                aluno_obj = Aluno.objects.select_related('turma__curso', 'usuario').filter(
+                    usuario__first_name__iexact=first_name,
+                    usuario__last_name__iexact=last_name
+                ).first()
+                if aluno_obj:
+                    return aluno_obj
+            return Aluno.objects.select_related('turma__curso', 'usuario').filter(
+                usuario__first_name__iexact=nome.strip()
+            ).first()
+        return None
 
-    # Verifica se já submeteu para este ano
-    confirmacao_existente = ConfirmacaoMatricula.objects.filter(
-        aluno=aluno, ano_letivo=ano_letivo
-    ).first()
+    def _ano_letivo_para_confirmacao(aluno_obj):
+        if aluno_obj and aluno_obj.turma:
+            return aluno_obj.turma.ano_letivo + 1
+        return get_ano_letivo_atual()
 
-    if confirmacao_existente:
-        return render(request, 'academico/confirmacao_estado.html', {
-            'confirmacao': confirmacao_existente,
-        })
+    # Se logado e é aluno, obtém dados da turma
+    if usuario_logado:
+        try:
+            aluno = Aluno.objects.select_related('turma__curso').get(usuario=request.user)
+            ano_letivo = _ano_letivo_para_confirmacao(aluno)
+            classe_atual = aluno.turma.classe if aluno.turma else None
+            proxima_classe = ConfirmacaoMatricula.calcular_proxima_classe(classe_atual)
+            precisa_escolher_curso = (str(classe_atual) == '9')
+            cursos_ii_ciclo = Curso.objects.filter(
+                tipo__in=['GERAL', 'TECNICO']
+            ) if precisa_escolher_curso else None
 
-    # Calcula a próxima classe
-    proxima_classe = ConfirmacaoMatricula.calcular_proxima_classe(classe_atual)
+            # Verifica se já submeteu para o ano de confirmação correto
+            confirmacao_existente = ConfirmacaoMatricula.objects.filter(
+                aluno=aluno, ano_letivo=ano_letivo
+            ).first()
+            if confirmacao_existente:
+                return render(request, 'academico/confirmacao_estado.html', {
+                    'confirmacao': confirmacao_existente,
+                })
+        except Aluno.DoesNotExist:
+            # Usuário logado mas sem perfil de aluno
+            # Permite preencher como visitante
+            aluno = None
 
-    # Verifica se é transição 9ª → 10ª (escolha de curso obrigatória)
-    precisa_escolher_curso = (str(classe_atual) == '9')
-
-    # Cursos disponíveis para o II Ciclo (10ª em diante)
-    cursos_ii_ciclo = Curso.objects.filter(
-        tipo__in=['GERAL', 'TECNICO']
-    ) if precisa_escolher_curso else None
+    classes_disponiveis = Turma.CLASSES_CHOICES
+    form_data = request.POST if request.method == 'POST' else {}
 
     if request.method == 'POST':
         foto = request.FILES.get('foto_rosto')
         bi = request.POST.get('bi_numero', '').strip()
         email = request.POST.get('email', '').strip()
+        nome_visitante = request.POST.get('nome_completo', '').strip() if not aluno else None
+        classe_atual_post = request.POST.get('classe_atual') if not aluno else None
         curso_id = request.POST.get('curso_novo')
+
+        # Se o visitante já corresponder a um aluno pelo BI ou nome, ligamos o registo
+        if not aluno and bi:
+            aluno = _achar_aluno_por_bi_e_nome(bi, nome_visitante)
+            if aluno:
+                ano_letivo = _ano_letivo_para_confirmacao(aluno)
+            classe_atual = classe_atual_post or None
+            proxima_classe = ConfirmacaoMatricula.calcular_proxima_classe(classe_atual)
+            precisa_escolher_curso = (str(classe_atual) == '9')
+            cursos_ii_ciclo = Curso.objects.filter(
+                tipo__in=['GERAL', 'TECNICO']
+            ) if precisa_escolher_curso else None
 
         # Validações
         erros = []
@@ -157,6 +207,10 @@ def confirmacao_matricula(request):
             erros.append("O número do B.I. é obrigatório.")
         if not email:
             erros.append("O e-mail é obrigatório.")
+        if not aluno and not nome_visitante:
+            erros.append("O nome completo é obrigatório.")
+        if not aluno and not classe_atual:
+            erros.append("Deves indicar a tua classe atual.")
         if precisa_escolher_curso and not curso_id:
             erros.append("Deves escolher o curso para a 10ª classe.")
 
@@ -167,16 +221,17 @@ def confirmacao_matricula(request):
             curso_novo = None
             if precisa_escolher_curso and curso_id:
                 curso_novo = get_object_or_404(Curso, id=curso_id)
-            elif aluno.turma:
+            elif aluno and aluno.turma:
                 curso_novo = aluno.turma.curso
 
             confirmacao = ConfirmacaoMatricula.objects.create(
                 aluno=aluno,
+                nome_completo=nome_visitante or (aluno.usuario.get_full_name() if aluno else None),
                 ano_letivo=ano_letivo,
                 foto_rosto=foto,
                 bi_numero=bi,
                 email=email,
-                classe_nova=proxima_classe or classe_atual,
+                classe_nova=proxima_classe or classe_atual or '10',
                 curso_novo=curso_novo,
                 status='EM_REVISAO',
             )
@@ -190,11 +245,14 @@ def confirmacao_matricula(request):
 
     return render(request, 'academico/confirmacao_form.html', {
         'aluno': aluno,
+        'usuario_logado': usuario_logado,
         'classe_atual': classe_atual,
         'proxima_classe': proxima_classe,
         'precisa_escolher_curso': precisa_escolher_curso,
         'cursos_ii_ciclo': cursos_ii_ciclo,
         'ano_letivo': ano_letivo,
+        'classes_disponiveis': classes_disponiveis,
+        'form_data': form_data,
     })
 
 
@@ -391,7 +449,10 @@ def exportar_relatorio_turma_excel(request, turma_id):
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = str(turma)
+    sheet_title = str(turma)
+    if len(sheet_title) > 31:
+        sheet_title = sheet_title[:28] + '...'
+    ws.title = sheet_title
 
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(start_color="E8621A", end_color="E8621A", fill_type="solid")

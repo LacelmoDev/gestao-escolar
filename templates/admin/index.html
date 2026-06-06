@@ -29,6 +29,35 @@
     </div>
     {% endif %}
 
+    {% if confirmacoes_pendentes %}
+    <div class="module">
+        <h2>{% trans "Confirmações Pendentes" %} ({{ confirmacoes_pendentes|length }})</h2>
+        <ul class="actionlist">
+            {% for confirmacao in confirmacoes_pendentes %}
+            <li class="addlink">
+                <a href="{% url 'admin:academico_confirmacaomatricula_change' confirmacao.id %}">
+                    {% if confirmacao.aluno %}
+                        {{ confirmacao.aluno.usuario.get_full_name|default:confirmacao.aluno.usuario.username }}
+                    {% else %}
+                        {{ confirmacao.nome_completo|default:confirmacao.bi_numero }}
+                    {% endif %}
+                </a>
+                <br>
+                <span class="mini quiet">
+                    {{ confirmacao.get_classe_nova_display }}{% if confirmacao.curso_novo %} &middot; {{ confirmacao.curso_novo }}{% endif %} &middot; {{ confirmacao.data_submissao|date:"d/m H:i" }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <div style="text-align:right; padding: 5px 0 8px;">
+            <a href="{% url 'admin:academico_confirmacaomatricula_changelist' %}?status__exact=EM_REVISAO"
+               class="viewlink" style="font-size: var(--font-size-small);">
+                {% trans "Ver todas" %} →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="module" id="recent-actions-module">
         <h2>{% translate 'Recent actions' %}</h2>
         <h3>{% translate 'My actions' %}</h3>

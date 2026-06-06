@@ -3,18 +3,22 @@ from django.shortcuts import render
 from django.db.models import Count
 import json
 
-from .models import Nota, Aluno, Presenca, Inscricao
+from .models import Nota, Aluno, Presenca, Inscricao, AnoLetivo
+from .services import get_ano_letivo_atual
 from escola.models import Turma, Professor
 
 @staff_member_required
 def relatorios_admin_view(request):
-    ano = int(request.GET.get('ano', 2026))
+    ano = int(request.GET.get('ano', get_ano_letivo_atual()))
 
     inscricoes_status = Inscricao.objects.values('status').annotate(total=Count('id')).order_by('status')
     status_map = {'PENDENTE': 'Pendente', 'CONFIRMADO': 'Confirmado', 'PAGO': 'Pago', 'REJEITADO': 'Rejeitado'}
     status_labels = [status_map.get(i['status'], i['status']) for i in inscricoes_status]
     status_dados  = [i['total'] for i in inscricoes_status]
     total_inscricoes = sum(status_dados)
+    anos_disponiveis = list(AnoLetivo.objects.order_by('-ano').values_list('ano', flat=True))
+    if not anos_disponiveis:
+        anos_disponiveis = [get_ano_letivo_atual()]
 
     turmas_dados  = Turma.objects.filter(ano_letivo=ano).annotate(num_alunos=Count('alunos')).order_by('curso__nome', 'classe')
     turmas_labels = [str(t) for t in turmas_dados]

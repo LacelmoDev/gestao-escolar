@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8 px-4 pb-20">
+    <div class="mb-8">
+        <a href="{% url 'home' %}" class="text-[10px] font-black text-tarimba uppercase tracking-widest hover:underline">
+            <i class="fas fa-chevron-left"></i> Voltar ao Início
+        </a>
+        <h1 class="text-4xl font-black text-gray-900 tracking-tighter mt-4">Estado da Confirmação</h1>
+    </div>
+
+    {% if confirmacao %}
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Estado Actual</p>
+            <div class="flex items-center gap-3 mt-4">
+                {% if confirmacao.status == 'EM_REVISAO' %}
+                    <div class="w-4 h-4 rounded-full bg-yellow-500 animate-pulse"></div>
+                    <span class="text-2xl font-black text-yellow-600">Em Revisão</span>
+                {% elif confirmacao.status == 'AGUARDANDO_PAGAMENTO' %}
+                    <div class="w-4 h-4 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span class="text-2xl font-black text-blue-600">Pagamento Pendente</span>
+                {% elif confirmacao.status == 'ATIVO' %}
+                    <div class="w-4 h-4 rounded-full bg-green-500"></div>
+                    <span class="text-2xl font-black text-green-600">Ativo</span>
+                {% elif confirmacao.status == 'REJEITADO' %}
+                    <div class="w-4 h-4 rounded-full bg-red-500"></div>
+                    <span class="text-2xl font-black text-red-600">Rejeitado</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Classe</p>
+            <p class="text-3xl font-black text-gray-900 mt-4">{{ confirmacao.classe_nova }}ª Classe</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Ano Letivo</p>
+            <p class="text-3xl font-black text-gray-900 mt-4">{{ confirmacao.ano_letivo }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-10">
+        <h2 class="text-2xl font-black text-gray-900 mb-8 uppercase tracking-tighter">Detalhes da Confirmação</h2>
+
+        <div class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Aluno</p>
+                    <p class="text-lg font-bold text-gray-900">{{ confirmacao.aluno.usuario.get_full_name|default:confirmacao.aluno.usuario.username }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nº de Processo</p>
+                    <p class="text-lg font-bold text-gray-900 font-mono">{{ confirmacao.aluno.numero_processo }}</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">BI Número</p>
+                    <p class="text-lg font-bold text-gray-900">{{ confirmacao.bi_numero }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Email</p>
+                    <p class="text-lg font-bold text-gray-900">{{ confirmacao.email }}</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Curso</p>
+                    <p class="text-lg font-bold text-gray-900">{{ confirmacao.curso_novo|default:"Mantém o curso anterior" }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Data de Submissão</p>
+                    <p class="text-lg font-bold text-gray-900">{{ confirmacao.data_submissao|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+
+            {% if confirmacao.status == 'REJEITADO' and confirmacao.motivo_rejeicao %}
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-6">
+                <p class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2">Motivo da Rejeição</p>
+                <p class="text-gray-800 font-medium">{{ confirmacao.motivo_rejeicao }}</p>
+            </div>
+            {% endif %}
+
+            {% if confirmacao.status == 'EM_REVISAO' %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+                <p class="text-[10px] font-black text-yellow-600 uppercase tracking-widest mb-3">Estado: Em Revisão</p>
+                <p class="text-gray-800 font-medium">Os teus documentos estão a ser analisados. Receberás um contacto quando o processo estiver completo.</p>
+            </div>
+            {% endif %}
+
+            {% if confirmacao.status == 'AGUARDANDO_PAGAMENTO' %}
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3">Próximo Passo: Efetua o Pagamento</p>
+                <p class="text-gray-800 font-medium">Dirija-se ao Colégio Tarimba para efectuar o pagamento da taxa de confirmação de matrícula. Apresenta este código de referência: <span class="font-black text-blue-600">#{{ confirmacao.id|stringformat:"05d" }}</span></p>
+            </div>
+            {% endif %}
+
+            {% if confirmacao.status == 'ATIVO' %}
+            <div class="bg-green-50 border border-green-200 rounded-2xl p-6">
+                <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-3">Matrícula Confirmada</p>
+                <p class="text-gray-800 font-medium">Parabéns! O teu acesso ao Portal do Aluno foi desbloqueado. Podes entrar com o teu número de B.I. como utilizador.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-10 flex gap-4">
+            <a href="{% url 'dashboard' %}" class="px-8 py-3 bg-tarimba text-white font-black rounded-2xl hover:bg-orange-600 transition-all">
+                Voltar ao Dashboard
+            </a>
+            <a href="{% url 'home' %}" class="px-8 py-3 border-2 border-gray-200 text-gray-600 font-black rounded-2xl hover:bg-gray-50 transition-all">
+                Voltar ao Início
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-10 text-center">
+        <div class="mb-8 inline-flex items-center justify-center w-24 h-24 bg-gray-50 rounded-full">
+            <i class="fas fa-inbox text-4xl text-gray-300"></i>
+        </div>
+        <h2 class="text-2xl font-black text-gray-900 mb-4">Nenhuma Confirmação Encontrada</h2>
+        <p class="text-gray-500 font-medium mb-8">Não tens nenhuma confirmação de matrícula submetida. Para iniciar o processo, accede ao formulário de confirmação.</p>
+        <a href="{% url 'confirmacao_matricula' %}" class="inline-block px-8 py-3 bg-tarimba text-white font-black rounded-2xl hover:bg-orange-600 transition-all">
+            Submeter Confirmação
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

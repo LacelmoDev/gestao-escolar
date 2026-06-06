@@ -11,6 +11,7 @@ import logging
 from .models import Nota, Aluno, Presenca, Inscricao, Notificacao
 from .forms import InscricaoForm, PerfilAlunoForm
 from .utils import enviar_email_inscricao_recebida
+from .services import get_ano_letivo_atual
 from escola.models import Professor, Turma, Atribuicao, Disciplina
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ def dashboard(request):
             'aluno__turma__ano_letivo', flat=True
         ).distinct().order_by('-aluno__turma__ano_letivo')
 
-        ano_atual_aluno = aluno.turma.ano_letivo if aluno.turma else 2026
+        ano_atual_aluno = aluno.turma.ano_letivo if aluno.turma else get_ano_letivo_atual()
         ano_selecionado = request.GET.get('ano')
 
         if not ano_selecionado:

@@ -88,8 +88,8 @@
         <form method="get" id="filterForm">
             <strong>📅 Filtro:</strong> 
             <select name="ano" onchange="document.getElementById('filterForm').submit()" style="padding: 2px 8px;">
-                {% for a in "2024,2025,2026"|make_list %}
-                    <option value="{{ a }}" {% if ano|stringformat:"s" == a %}selected{% endif %}>Ano Lectivo {{ a }}</option>
+                {% for a in anos_disponiveis %}
+                    <option value="{{ a }}" {% if ano|stringformat:"s" == a|stringformat:"s" %}selected{% endif %}>Ano Lectivo {{ a }}</option>
                 {% endfor %}
             </select>
         </form>

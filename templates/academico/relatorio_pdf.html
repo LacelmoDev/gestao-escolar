@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Admin Tarimba</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #222; margin: 0; padding: 0; }
+        .page { padding: 24px; }
+        h1, h2, h3 { margin: 0 0 12px; }
+        .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
+        .info { margin-bottom: 18px; }
+        .info span { display: inline-block; min-width: 160px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th, td { border: 1px solid #d1d5db; padding: 8px 10px; font-size: 12px; }
+        th { background: #f8fafc; text-align: left; }
+        .small { font-size: 11px; color: #6b7280; }
+        .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #6b7280; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="header">
+        <h1>Relatório Académico Tarimba</h1>
+        <p class="small">Ano letivo {{ ano }} · Gerado em {{ data_geracao }}</p>
+    </div>
+
+    <div class="info">
+        <h2>Resumo</h2>
+        <p><span>Total de alunos:</span> {{ total_alunos }}</p>
+    </div>
+
+    <div>
+        <h2>Turmas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Turma</th>
+                    <th>Curso</th>
+                    <th>Classe</th>
+                    <th>Alunos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turma in turmas %}
+                <tr>
+                    <td>{{ turma }}</td>
+                    <td>{{ turma.curso }}</td>
+                    <td>{{ turma.get_classe_display }}</td>
+                    <td>{{ turma.num_alunos }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Nenhuma turma encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <h2>Inscrições por estado</h2>
+        <table>
+            <thead>
+                <tr><th>Estado</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                {% for item in inscricoes_status %}
+                <tr><td>{{ item.status }}</td><td>{{ item.total }}</td></tr>
+                {% empty %}
+                <tr><td colspan="2">Nenhuma inscrição encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <h2>Alunos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Turma</th>
+                    <th>Média</th>
+                    <th>Faltas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aluno in alunos %}
+                <tr>
+                    <td>{{ aluno.nome }}</td>
+                    <td>{{ aluno.turma }}</td>
+                    <td>{{ aluno.media }}</td>
+                    <td>{{ aluno.faltas }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Nenhum aluno encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Relatório gerado automaticamente pelo sistema académico do Colégio Tarimba.
+    </div>
+</div>
+</body>
+</html>

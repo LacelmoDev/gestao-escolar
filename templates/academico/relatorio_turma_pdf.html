@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório da Turma</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #222; margin: 0; padding: 0; }
+        .page { padding: 24px; }
+        h1, h2, h3 { margin: 0 0 12px; }
+        .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
+        .info { margin-bottom: 18px; }
+        .info span { display: inline-block; min-width: 140px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th, td { border: 1px solid #d1d5db; padding: 8px 10px; font-size: 12px; }
+        th { background: #f8fafc; text-align: left; }
+        .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #6b7280; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="header">
+        <h1>Relatório da Turma</h1>
+        <p class="small">Gerado em {{ data_geracao }}</p>
+    </div>
+
+    <div class="info">
+        <h2>Detalhes</h2>
+        <p><span>Turma:</span> {{ turma }}</p>
+        <p><span>Professor:</span> {{ professor.usuario.get_full_name }}</p>
+        <p><span>Disciplina(s):</span> {% for disc in disciplinas %}{{ disc.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    </div>
+
+    <div>
+        <h2>Desempenho dos alunos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nº Processo</th>
+                    <th>Nome</th>
+                    <th>Média</th>
+                    <th>Faltas</th>
+                    <th>Aprovado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aluno in dados_alunos %}
+                <tr>
+                    <td>{{ aluno.processo }}</td>
+                    <td>{{ aluno.nome }}</td>
+                    <td>{{ aluno.media }}</td>
+                    <td>{{ aluno.faltas }}</td>
+                    <td>{{ aluno.aprovado|yesno:"Sim,Não" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Nenhum aluno encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Relatório gerado automaticamente pelo sistema académico do Colégio Tarimba.
+    </div>
+</div>
+</body>
+</html>

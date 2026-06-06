@@ -13,6 +13,11 @@ class TarimbaAdminSite(AdminSite):
             status='PENDENTE'
         ).select_related('curso_pretendido').order_by('-data_submissao')[:10]
         
+        from academico.models import ConfirmacaoMatricula
+        extra_context['confirmacoes_pendentes'] = ConfirmacaoMatricula.objects.filter(
+            status='EM_REVISAO'
+        ).select_related('aluno__usuario', 'curso_novo').order_by('-data_submissao')[:10]
+
         # Adicionar notificações não lidas
         extra_context['notificacoes_nao_lidas'] = Notificacao.objects.filter(
             lida=False

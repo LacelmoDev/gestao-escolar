@@ -4,7 +4,8 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Avg, Q
 from decimal import Decimal
 import json
-from .models import Nota, Aluno, Presenca, Inscricao
+from .models import Nota, Aluno, Presenca, Inscricao, AnoLetivo
+from .services import get_ano_letivo_atual
 from escola.models import Turma, Disciplina, Curso, Professor, Atribuicao
 
 @login_required
@@ -16,7 +17,7 @@ def relatorios_admin(request):
     if not (request.user.is_staff or request.user.is_admin_escola):
         raise PermissionDenied
 
-    ano = int(request.GET.get('ano', 2026))
+    ano = int(request.GET.get('ano', get_ano_letivo_atual()))
 
     # ── 1. INSCRIÇÕES POR STATUS ──────────────────────────────────────────
     inscricoes_status = Inscricao.objects.values('status').annotate(
@@ -36,6 +37,9 @@ def relatorios_admin(request):
         status_dados.append(item['total'])
 
     total_inscricoes = sum(status_dados)
+    anos_disponiveis = list(AnoLetivo.objects.order_by('-ano').values_list('ano', flat=True))
+    if not anos_disponiveis:
+        anos_disponiveis = [get_ano_letivo_atual()]
 
     # ── 2. ALUNOS POR TURMA ───────────────────────────────────────────────
     turmas_dados = Turma.objects.filter(
@@ -111,6 +115,7 @@ def relatorios_admin(request):
         'turmas_labels': json.dumps(turmas_labels),
         'turmas_alunos': json.dumps(turmas_alunos),
         'total_alunos': total_alunos,
+        'anos_disponiveis': anos_disponiveis,
         'disciplinas_labels': json.dumps(disciplinas_labels),
         'disciplinas_medias': json.dumps(disciplinas_medias),
         'assiduidade_labels': json.dumps(assiduidade_labels),

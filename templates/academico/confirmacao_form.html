@@ -6,10 +6,17 @@
             <div class="text-4xl mb-4">📋</div>
             <h1 class="text-3xl font-black text-gray-900 tracking-tighter">Confirmação de Matrícula</h1>
             <p class="text-gray-500 font-medium mt-2">Ano Lectivo <strong>{{ ano_letivo }}</strong></p>
+            {% if not usuario_logado %}
+            <p class="text-sm text-tarimba font-bold mt-2">Visitante — Preenche todos os dados abaixo</p>
+            {% endif %}
         </div>
 
+        {% if usuario_logado and aluno %}
         <div class="bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-8">
             <p class="text-sm font-bold text-gray-700">
+                <span class="text-tarimba">Aluno:</span> {{ aluno.usuario.get_full_name|default:aluno.usuario.username }}
+            </p>
+            <p class="text-sm font-bold text-gray-700 mt-1">
                 <span class="text-tarimba">Classe actual:</span> {{ classe_atual }}ª Classe
                 &nbsp;→&nbsp;
                 <span class="text-tarimba">Nova classe:</span>
@@ -21,9 +28,30 @@
             </p>
             {% endif %}
         </div>
+        {% endif %}
 
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
+
+            {% if not aluno %}
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nome Completo *</label>
+                <input type="text" name="nome_completo" required placeholder="Ex: João da Silva Santos"
+                       value="{{ form_data.nome_completo|default:'' }}"
+                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Classe Actual *</label>
+                <select name="classe_atual" required
+                        class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
+                    <option value="">-- Selecciona a tua classe actual --</option>
+                    {% for value,label in classes_disponiveis %}
+                    <option value="{{ value }}" {% if form_data.classe_atual == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
 
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Foto de Rosto *</label>
@@ -34,12 +62,14 @@
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Número do B.I. *</label>
                 <input type="text" name="bi_numero" required placeholder="Ex: 005123456LA042"
+                       value="{{ form_data.bi_numero|default:'' }}"
                        class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
             </div>
 
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">E-mail de Contacto *</label>
                 <input type="email" name="email" required placeholder="teu@email.com"
+                       value="{{ form_data.email|default:'' }}"
                        class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
             </div>
 
@@ -50,7 +80,7 @@
                         class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-sm focus:border-tarimba outline-none">
                     <option value="">-- Selecciona o curso --</option>
                     {% for curso in cursos_ii_ciclo %}
-                    <option value="{{ curso.id }}">{{ curso.nome }} ({{ curso.get_tipo_display }})</option>
+                    <option value="{{ curso.id }}" {% if form_data.curso_novo == curso.id|stringformat:"s" %}selected{% endif %}>{{ curso.nome }} ({{ curso.get_tipo_display }})</option>
                     {% endfor %}
                 </select>
             </div>
